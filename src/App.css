@@ -1,0 +1,16 @@
+@import './theme/variables.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--color-bg);
+  color: var(--color-text);
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
