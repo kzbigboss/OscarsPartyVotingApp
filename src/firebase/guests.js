@@ -1,4 +1,4 @@
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from './config'
 
 function generateGuestId() {
@@ -15,4 +15,9 @@ export async function joinParty(partyCode, displayName) {
     joinedAt: serverTimestamp(),
   })
   return { guestId }
+}
+
+export async function updateGuestName(partyCode, guestId, displayName) {
+  const guestRef = doc(db, 'parties', partyCode, 'guests', guestId)
+  await updateDoc(guestRef, { displayName })
 }

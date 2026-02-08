@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories'
 import { useVotes } from '../hooks/useVotes'
 import { castVote } from '../firebase/votes'
-import { lockCategory, unlockCategory, lockAllCategories, unlockAllCategories, selectWinner } from '../firebase/categories'
+import { lockCategory, unlockCategory, lockAllCategories, unlockAllCategories, selectWinner, clearWinner } from '../firebase/categories'
 import CategoryCard from '../components/CategoryCard'
 import NavBar from '../components/NavBar'
 import HostModeToggle from '../components/HostModeToggle'
@@ -18,12 +18,30 @@ export default function Ballot() {
   const guestId = stored.guestId
   const isHost = stored.isHost || false
   const [hostMode, setHostMode] = useState(isHost)
+  const [expandedIds, setExpandedIds] = useState(new Set())
 
   const myVotes = {}
   for (const vote of votes) {
     if (vote.guestId === guestId) {
       myVotes[vote.categoryId] = vote.nomineeId
     }
+  }
+
+  function toggleExpand(id) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function expandAll() {
+    setExpandedIds(new Set(categories.map((c) => c.id)))
+  }
+
+  function collapseAll() {
+    setExpandedIds(new Set())
   }
 
   function handleVote(categoryId, nomineeId) {
@@ -42,6 +60,10 @@ export default function Ballot() {
     selectWinner(partyCode, categoryId, nomineeId)
   }
 
+  function handleClearWinner(categoryId) {
+    clearWinner(partyCode, categoryId)
+  }
+
   function handleLockAll() {
     lockAllCategories(partyCode, categories.map((c) => c.id))
   }
@@ -54,14 +76,20 @@ export default function Ballot() {
 
   return (
     <div className="ballot">
+      <div className="floating-menu">
+        <button className="btn-small" onClick={expandAll}>Expand All</button>
+        <button className="btn-small" onClick={collapseAll}>Collapse All</button>
+        {hostMode && (
+          <>
+            <button className="btn-small" onClick={handleLockAll}>Lock All</button>
+            <button className="btn-small" onClick={handleUnlockAll}>Unlock All</button>
+          </>
+        )}
+      </div>
       <h1>Your Ballot</h1>
       {hostMode && (
         <div className="host-banner">
           <span>Host Mode</span>
-          <div>
-            <button className="btn-small" onClick={handleLockAll}>Lock All</button>
-            <button className="btn-small" onClick={handleUnlockAll}>Unlock All</button>
-          </div>
         </div>
       )}
       {categories.map((cat) => (
@@ -74,6 +102,9 @@ export default function Ballot() {
           onLock={handleLock}
           onUnlock={handleUnlock}
           onSelectWinner={handleSelectWinner}
+          onClearWinner={handleClearWinner}
+          expanded={expandedIds.has(cat.id)}
+          onToggleExpand={() => toggleExpand(cat.id)}
         />
       ))}
       {!hostMode && (

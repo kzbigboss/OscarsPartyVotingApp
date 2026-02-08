@@ -9,10 +9,27 @@ export default function Categories() {
   const { partyCode } = useParams()
   const { categories, loading: catsLoading } = useCategories(partyCode)
   const { votes, loading: votesLoading } = useVotes(partyCode)
-  const [expanded, setExpanded] = useState(null)
+  const [expandedIds, setExpandedIds] = useState(new Set())
 
   if (catsLoading || votesLoading) {
     return <div className="categories-page"><p>Loading...</p></div>
+  }
+
+  function toggleExpand(id) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function expandAll() {
+    setExpandedIds(new Set(categories.map((c) => c.id)))
+  }
+
+  function collapseAll() {
+    setExpandedIds(new Set())
   }
 
   function getVoteCounts(category) {
@@ -26,18 +43,22 @@ export default function Categories() {
 
   return (
     <div className="categories-page">
+      <div className="floating-menu">
+        <button className="btn-small" onClick={expandAll}>Expand All</button>
+        <button className="btn-small" onClick={collapseAll}>Collapse All</button>
+      </div>
       <h1>Categories</h1>
       {categories.map((cat) => {
-        const isExpanded = expanded === cat.id
+        const isExpanded = expandedIds.has(cat.id)
         const { counts, total } = isExpanded ? getVoteCounts(cat) : { counts: {}, total: 0 }
         return (
-          <div key={cat.id} className="category-row" onClick={() => setExpanded(isExpanded ? null : cat.id)}>
+          <div key={cat.id} className="category-row" onClick={() => toggleExpand(cat.id)}>
             <div className="category-summary">
               <span>{cat.winnerId ? '\u2713 ' : ''}{cat.name}</span>
               <span className="expand-icon">{isExpanded ? '\u25B2' : '\u25BC'}</span>
             </div>
             {isExpanded && (
-              <div className="category-detail">
+              <div className="category-detail" onClick={(e) => e.stopPropagation()}>
                 {cat.nominees.map((nom) => {
                   const count = counts[nom.id] || 0
                   const pct = total > 0 ? Math.round((count / total) * 100) : 0

@@ -53,3 +53,8 @@ export async function selectWinner(partyCode, categoryId, nomineeId) {
   const catRef = doc(db, 'parties', partyCode, 'categories', categoryId)
   await updateDoc(catRef, { winnerId: nomineeId, locked: true })
 }
+
+export async function clearWinner(partyCode, categoryId) {
+  const catRef = doc(db, 'parties', partyCode, 'categories', categoryId)
+  await updateDoc(catRef, { winnerId: null, locked: false })
+}

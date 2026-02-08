@@ -14,6 +14,9 @@ export default function NavBar() {
       <NavLink to={`/${partyCode}/categories`} className={({ isActive }) => isActive ? 'active' : ''}>
         Categories
       </NavLink>
+      <NavLink to={`/${partyCode}/you`} className={({ isActive }) => isActive ? 'active' : ''}>
+        You
+      </NavLink>
     </nav>
   )
 }
