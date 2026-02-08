@@ -1,0 +1,7 @@
+[tools]
+node = "22.22.0"
+"npm:firebase-tools" = "latest"
+
+[env]
+# Ensure node_modules/.bin is on PATH for locally installed packages
+_.path = ["node_modules/.bin"]
