@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # Dev server at localhost:5173
 npm run build        # Production build to dist/
 npm run lint         # ESLint (flat config)
+npm run prepare      # Install pre-commit hook (runs automatically after npm install)
 npx vitest run       # Run all tests once
 npx vitest run src/firebase/__tests__/parties.test.js  # Run a single test file
 mise install         # Install pinned Node 22.22.0 + firebase-tools
