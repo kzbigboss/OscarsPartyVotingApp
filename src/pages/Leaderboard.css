@@ -1,0 +1,41 @@
+.leaderboard {
+  padding-bottom: 80px;
+}
+
+.leaderboard h1 {
+  margin-bottom: var(--spacing-xs);
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.rankings {
+  list-style: none;
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-xs);
+}
+
+.rank {
+  font-weight: 700;
+  width: 40px;
+  color: var(--color-text-muted);
+}
+
+.guest-name {
+  flex: 1;
+}
+
+.score {
+  font-weight: 700;
+  font-size: 18px;
+}

@@ -1,0 +1,44 @@
+.host-mode-link {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: var(--spacing-sm);
+}
+
+.host-prompt {
+  background: var(--color-surface);
+  padding: var(--spacing-md);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-md);
+}
+
+.host-prompt form {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.host-prompt input {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.host-prompt button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.host-prompt .error {
+  color: var(--color-error);
+  font-size: 12px;
+  margin-top: var(--spacing-xs);
+}

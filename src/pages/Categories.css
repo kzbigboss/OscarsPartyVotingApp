@@ -1,0 +1,88 @@
+.categories-page {
+  padding-bottom: 80px;
+}
+
+.categories-page h1 {
+  margin-bottom: var(--spacing-md);
+}
+
+.category-row {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.category-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  font-weight: 600;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.category-detail {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+}
+
+.nominee-row {
+  padding: var(--spacing-sm) 0;
+}
+
+.nominee-row.winner {
+  font-weight: 600;
+}
+
+.nominee-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.nominee-info .nominee-name {
+  font-size: 14px;
+}
+
+.nominee-info .nominee-detail {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.winner-label {
+  font-size: 11px;
+  background: var(--color-success);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.vote-bar-container {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.vote-bar {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.nominee-row.winner .vote-bar {
+  background: var(--color-success);
+}
+
+.vote-count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

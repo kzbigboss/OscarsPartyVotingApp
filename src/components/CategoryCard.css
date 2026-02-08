@@ -1,0 +1,110 @@
+.category-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.category-card.locked {
+  opacity: 0.85;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.category-header h3 {
+  font-size: 16px;
+}
+
+.nominee-list {
+  list-style: none;
+}
+
+.nominee {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.category-card.locked .nominee {
+  cursor: default;
+}
+
+.nominee:not(.category-card.locked .nominee):hover {
+  background: var(--color-border);
+}
+
+.nominee.selected {
+  background: var(--color-primary);
+  color: white;
+}
+
+.nominee.winner {
+  background: var(--color-success);
+  color: white;
+}
+
+.nominee.not-winner {
+  opacity: 0.5;
+}
+
+.nominee-name {
+  flex: 1;
+}
+
+.nominee-detail {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.nominee.selected .nominee-detail {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.vote-badge,
+.winner-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.vote-badge {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.winner-badge {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-small {
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
+.btn-winner {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.host-controls {
+  display: flex;
+  gap: var(--spacing-xs);
+}
