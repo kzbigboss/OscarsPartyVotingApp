@@ -1,12 +1,12 @@
 import './CategoryCard.css'
 
-export default function CategoryCard({ category, myVote, onVote, isHost, onLock, onUnlock, onSelectWinner, onClearWinner, expanded, onToggleExpand }) {
+export default function CategoryCard({ category, myVote, onVote, onClearVote, isHost, onLock, onUnlock, onSelectWinner, onClearWinner, expanded, onToggleExpand }) {
   const { name, nominees, locked, winnerId } = category
 
   return (
     <div className={`category-card ${locked ? 'locked' : ''} ${winnerId ? 'announced' : ''}`}>
       <div className="category-header" onClick={onToggleExpand}>
-        <h3>{locked && '\u{1F512} '}{name}</h3>
+        <h3>{locked && '\u{1F512} '}{myVote ? '\u2611 ' : '\u2610 '}{name}</h3>
         <div className="header-right">
           {isHost && (
             <div className="host-controls" onClick={(e) => e.stopPropagation()}>
@@ -40,7 +40,11 @@ export default function CategoryCard({ category, myVote, onVote, isHost, onLock,
                 winnerId === nominee.id ? 'winner' : '',
                 winnerId && winnerId !== nominee.id ? 'not-winner' : '',
               ].join(' ')}
-              onClick={() => !locked && onVote(category.id, nominee.id)}
+              onClick={() => {
+                if (locked) return
+                if (myVote === nominee.id) onClearVote(category.id)
+                else onVote(category.id, nominee.id)
+              }}
             >
               <span className="nominee-name">{nominee.name}</span>
               {nominee.detail && <span className="nominee-detail">{nominee.detail}</span>}

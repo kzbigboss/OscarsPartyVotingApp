@@ -54,7 +54,13 @@ export default function Categories() {
         return (
           <div key={cat.id} className="category-row" onClick={() => toggleExpand(cat.id)}>
             <div className="category-summary">
-              <span>{cat.winnerId ? '\u2713 ' : ''}{cat.name}</span>
+              <div className="category-summary-left">
+                <span>{cat.winnerId ? '\u2713 ' : ''}{cat.name}</span>
+                {!isExpanded && cat.winnerId && (() => {
+                  const winner = cat.nominees.find((n) => n.id === cat.winnerId)
+                  return winner ? <span className="winner-subtitle">{winner.name}</span> : null
+                })()}
+              </div>
               <span className="expand-icon">{isExpanded ? '\u25B2' : '\u25BC'}</span>
             </div>
             {isExpanded && (

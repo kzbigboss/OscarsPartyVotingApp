@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories'
 import { useVotes } from '../hooks/useVotes'
-import { castVote } from '../firebase/votes'
+import { castVote, clearVote } from '../firebase/votes'
 import { lockCategory, unlockCategory, lockAllCategories, unlockAllCategories, selectWinner, clearWinner } from '../firebase/categories'
 import CategoryCard from '../components/CategoryCard'
 import NavBar from '../components/NavBar'
@@ -46,6 +46,10 @@ export default function Ballot() {
 
   function handleVote(categoryId, nomineeId) {
     castVote(partyCode, guestId, categoryId, nomineeId)
+  }
+
+  function handleClearVote(categoryId) {
+    clearVote(partyCode, guestId, categoryId)
   }
 
   function handleLock(categoryId) {
@@ -98,6 +102,7 @@ export default function Ballot() {
           category={cat}
           myVote={myVotes[cat.id]}
           onVote={handleVote}
+          onClearVote={handleClearVote}
           isHost={hostMode}
           onLock={handleLock}
           onUnlock={handleUnlock}
