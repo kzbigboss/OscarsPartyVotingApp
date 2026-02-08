@@ -10,21 +10,87 @@
 
 ---
 
+### Task 0: Local Tooling Setup with Mise
+
+**Files:**
+- Create: `.mise.toml`
+- Modify: `.gitignore` (if needed)
+
+**Goal:** Pin all runtime tools (Node.js, Firebase CLI) at the project level via Mise so anyone cloning this repo gets identical versions with `mise install`. No global installs required beyond Mise itself.
+
+**Step 1: Create `.mise.toml` with project-level tool versions**
+
+Create `.mise.toml`:
+```toml
+[tools]
+node = "22.22.0"
+"npm:firebase-tools" = "latest"
+
+[env]
+# Ensure node_modules/.bin is on PATH for locally installed packages
+_.path = ["node_modules/.bin"]
+```
+
+**Why `.mise.toml` over `.tool-versions`?** The TOML format supports `[env]` blocks and npm packages natively, which we need for Firebase CLI and PATH configuration. `.tool-versions` only supports basic version pinning.
+
+**Step 2: Install the pinned tools**
+
+Run:
+```bash
+cd /Users/markkazzaz/Workspace/2026OscarsPartyVoting
+mise install
+```
+
+Expected: Mise installs Node 22.22.0 and firebase-tools into its managed directory (not globally).
+
+**Step 3: Verify the tools are active in this project**
+
+Run:
+```bash
+mise current
+node --version
+firebase --version
+```
+
+Expected:
+- `node` shows `22.22.0`
+- `firebase` shows the installed version
+
+**Step 4: Verify tools are project-scoped**
+
+Run from a different directory to confirm these versions only apply inside this project:
+```bash
+cd /tmp && node --version && cd /Users/markkazzaz/Workspace/2026OscarsPartyVoting && node --version
+```
+
+Expected: `/tmp` uses your global Node version, the project directory uses 22.22.0.
+
+**Step 5: Commit**
+
+```bash
+git add .mise.toml
+git commit -m "chore: add mise config for project-level Node 22 and Firebase CLI"
+```
+
+---
+
 ### Task 1: Project Scaffolding
 
 **Files:**
 - Create: `package.json`, `vite.config.js`, `index.html`, `src/main.jsx`, `src/App.jsx`, `src/App.css`
 - Create: `src/theme/variables.css`
 
+**Prerequisites:** Task 0 complete — `mise install` has been run, `node --version` shows 22.22.0.
+
 **Step 1: Scaffold the Vite + React project**
 
-Run:
+Run (using Mise-managed Node/npm):
 ```bash
 cd /Users/markkazzaz/Workspace/2026OscarsPartyVoting
 npm create vite@latest . -- --template react
 ```
 
-If prompted about non-empty directory, confirm yes (only `docs/` exists).
+If prompted about non-empty directory, confirm yes (only `docs/` and `.mise.toml` exist).
 
 **Step 2: Install dependencies**
 
@@ -2401,7 +2467,7 @@ Note: Since we're not using Firebase Auth, these rules are permissive for the tr
 
 Run:
 ```bash
-npx firebase-tools deploy --only firestore:rules
+firebase deploy --only firestore:rules
 ```
 
 Or deploy via the Firebase Console by pasting the rules.
@@ -2458,7 +2524,7 @@ Replace `your-firebase-project-id` with the actual Firebase project ID.
 Run:
 ```bash
 npm run build
-npx firebase-tools deploy
+firebase deploy
 ```
 
 Expected: App is live at `https://your-project.web.app`.
@@ -2523,6 +2589,7 @@ git commit -m "fix: address issues found during smoke testing"
 
 | Task | Description | Estimated Steps |
 |------|-------------|-----------------|
+| 0 | Local Tooling Setup with Mise | 5 |
 | 1 | Project Scaffolding | 8 |
 | 2 | Firebase Configuration | 5 |
 | 3 | Seed Data — 2026 Nominees | 2 |
