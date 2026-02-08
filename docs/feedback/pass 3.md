@@ -1,0 +1,1 @@
+The "You" page should indicate whether or not a user's vote for a given category is correct or not. Maybe a ❌ for wrong and ✅ for correct.

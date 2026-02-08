@@ -50,7 +50,7 @@ export default function Categories() {
       <h1>Categories</h1>
       {categories.map((cat) => {
         const isExpanded = expandedIds.has(cat.id)
-        const { counts, total } = isExpanded ? getVoteCounts(cat) : { counts: {}, total: 0 }
+        const { counts, total } = getVoteCounts(cat)
         return (
           <div key={cat.id} className="category-row" onClick={() => toggleExpand(cat.id)}>
             <div className="category-summary">
@@ -61,7 +61,10 @@ export default function Categories() {
                   return winner ? <span className="winner-subtitle">{winner.name}</span> : null
                 })()}
               </div>
-              <span className="expand-icon">{isExpanded ? '\u25B2' : '\u25BC'}</span>
+              <div className="category-summary-right">
+                {!isExpanded && total > 0 && <span className="vote-badge-count">{total} vote{total !== 1 ? 's' : ''}</span>}
+                <span className="expand-icon">{isExpanded ? '\u25B2' : '\u25BC'}</span>
+              </div>
             </div>
             {isExpanded && (
               <div className="category-detail" onClick={(e) => e.stopPropagation()}>

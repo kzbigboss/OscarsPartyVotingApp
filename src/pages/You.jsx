@@ -72,11 +72,16 @@ export default function You() {
           const nominee = nomineeId
             ? cat.nominees.find((n) => n.id === nomineeId)
             : null
+          const isAnnounced = !!cat.winnerId
+          const isCorrect = isAnnounced && nomineeId === cat.winnerId
+          const isWrong = isAnnounced && nomineeId && nomineeId !== cat.winnerId
           return (
-            <div key={cat.id} className={`vote-row ${nomineeId ? '' : 'empty'}`}>
+            <div key={cat.id} className={`vote-row ${nomineeId ? '' : 'empty'} ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''}`}>
               <span className="vote-category">{cat.name}</span>
               <span className="vote-pick">
                 {nominee ? nominee.name : '—'}
+                {isCorrect && ' ✅'}
+                {isWrong && ' ❌'}
               </span>
             </div>
           )

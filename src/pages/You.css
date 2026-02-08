@@ -66,6 +66,14 @@
   color: var(--color-text-muted);
 }
 
+.vote-row.correct {
+  background: rgba(46, 125, 50, 0.1);
+}
+
+.vote-row.wrong {
+  background: rgba(198, 40, 40, 0.1);
+}
+
 .vote-category {
   font-size: 13px;
   font-weight: 600;
