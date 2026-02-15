@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParty } from '../hooks/useParty'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase/config'
+import { hashPin } from '../firebase/parties'
 import './HostModeToggle.css'
 
 export default function HostModeToggle({ partyCode, onActivate }) {
@@ -12,7 +13,8 @@ export default function HostModeToggle({ partyCode, onActivate }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (pin === party?.hostPin) {
+    const hashedInput = await hashPin(pin)
+    if (hashedInput === party?.hostPinHash) {
       const stored = JSON.parse(localStorage.getItem(`guest_${partyCode}`) || '{}')
       const guestRef = doc(db, 'parties', partyCode, 'guests', stored.guestId)
       await updateDoc(guestRef, { isHost: true })
