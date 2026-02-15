@@ -54,8 +54,14 @@ service cloud.firestore {
         // Anyone can read votes
         allow read: if true;
 
-        // Anyone can cast or change a vote (no auth required)
-        allow create, update: if true;
+        // Anyone can cast or change a vote (no auth required), but
+        // documents must have the expected fields and the document ID
+        // must match the {guestId}_{categoryId} composite key.
+        allow create, update: if request.resource.data.keys().hasAll(['guestId', 'categoryId', 'nomineeId', 'timestamp'])
+                              && request.resource.data.guestId is string
+                              && request.resource.data.categoryId is string
+                              && request.resource.data.nomineeId is string
+                              && voteId == (request.resource.data.guestId + '_' + request.resource.data.categoryId);
       }
     }
 

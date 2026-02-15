@@ -76,6 +76,25 @@ describe('parties', () => {
     expect(hash1).not.toBe(hash2)
   })
 
+  it('hashPin with salt produces a different hash than without salt', async () => {
+    const unsalted = await hashPin('1234')
+    const salted = await hashPin('1234', 'ABC123')
+    expect(unsalted).not.toBe(salted)
+    expect(salted).toHaveLength(64)
+  })
+
+  it('hashPin with same salt is consistent', async () => {
+    const hash1 = await hashPin('1234', 'ABC123')
+    const hash2 = await hashPin('1234', 'ABC123')
+    expect(hash1).toBe(hash2)
+  })
+
+  it('hashPin with different salts produces different hashes', async () => {
+    const hash1 = await hashPin('1234', 'ABC123')
+    const hash2 = await hashPin('1234', 'XYZ789')
+    expect(hash1).not.toBe(hash2)
+  })
+
   it('getParty fetches a party by code', async () => {
     getDoc.mockResolvedValue({
       exists: () => true,
