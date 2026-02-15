@@ -23,5 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+# Firebase local cache
+.firebase
+
 # Git worktrees
 .worktrees
