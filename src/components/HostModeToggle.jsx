@@ -15,13 +15,18 @@ export default function HostModeToggle({ partyCode, onActivate }) {
     e.preventDefault()
     const hashedInput = await hashPin(pin)
     if (hashedInput === party?.hostPinHash) {
-      const stored = JSON.parse(localStorage.getItem(`guest_${partyCode}`) || '{}')
-      const guestRef = doc(db, 'parties', partyCode, 'guests', stored.guestId)
-      await updateDoc(guestRef, { isHost: true })
-      stored.isHost = true
-      localStorage.setItem(`guest_${partyCode}`, JSON.stringify(stored))
-      onActivate()
-      setShowPrompt(false)
+      try {
+        const stored = JSON.parse(localStorage.getItem(`guest_${partyCode}`) || '{}')
+        const guestRef = doc(db, 'parties', partyCode, 'guests', stored.guestId)
+        await updateDoc(guestRef, { isHost: true })
+        stored.isHost = true
+        localStorage.setItem(`guest_${partyCode}`, JSON.stringify(stored))
+        onActivate()
+        setShowPrompt(false)
+      } catch (err) {
+        console.error('Failed to activate host mode:', err)
+        setError('Could not activate host mode. Please try again.')
+      }
     } else {
       setError('Incorrect PIN')
     }
