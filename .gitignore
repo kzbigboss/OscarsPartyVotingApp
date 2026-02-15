@@ -26,5 +26,8 @@ dist-ssr
 # Firebase local cache
 .firebase
 
+# Firebase service account key
+service-account-key.json
+
 # Git worktrees
 .worktrees
