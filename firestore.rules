@@ -2,41 +2,59 @@ rules_version = '2';
 
 // Oscars Party Voting App — Firestore Security Rules
 //
-// These rules are intentionally permissive. The app uses a trusted-party
-// model: guests join only via a QR code / party link shared by the host,
-// so there is no anonymous public access surface.
+// Auth-based rules (Issue #4). Firebase Auth is now integrated, so we
+// enforce server-side authorization for privileged operations:
 //
-// The project runs on the Firebase Spark (free) plan, which does not
-// support Firebase Auth — the prerequisite for meaningful auth-based
-// rules. Full security hardening is tracked in:
-//   - Issue #3 (Firebase Auth integration)
-//   - Issue #4 (auth-based Firestore rules)
+//   - Party creation: requires authenticated user; createdBy must match uid
+//   - Party updates: only the party creator (createdBy == auth.uid)
+//   - Category writes (lock/unlock/selectWinner): only the party creator
+//   - Guest create/update: open (anyone can join and scores update from any client)
+//   - Votes create/update: open (anyone can vote without auth)
+//   - All reads: open (guests need to see everything)
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /parties/{partyCode} {
-      // Party metadata (name, hostPin, createdAt)
+      // Anyone can read party metadata
       allow read: if true;
-      allow create: if true;
-      allow update: if true;
+
+      // Only authenticated users can create a party, and they must set
+      // createdBy to their own uid
+      allow create: if request.auth != null
+                    && request.resource.data.createdBy == request.auth.uid;
+
+      // Only the party creator can update party-level fields
+      // (e.g. allLocked toggle)
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.createdBy;
 
       match /categories/{categoryId} {
-        // Oscar categories with nominees, lock state, and winner
+        // Anyone can read categories
         allow read: if true;
-        allow write: if true;
+
+        // Only the party creator can write categories
+        // (lock/unlock, selectWinner, seeding)
+        allow write: if request.auth != null
+                     && request.auth.uid == get(/databases/$(database)/documents/parties/$(partyCode)).data.createdBy;
       }
 
       match /guests/{guestId} {
-        // Guest profiles (displayName, isHost, score)
+        // Anyone can read guest profiles
         allow read: if true;
+
+        // Anyone can join a party (create a guest doc)
         allow create: if true;
+
+        // Anyone can update guest docs (score updates from any client)
         allow update: if true;
       }
 
       match /votes/{voteId} {
-        // Votes keyed as {guestId}_{categoryId} for natural dedup
+        // Anyone can read votes
         allow read: if true;
+
+        // Anyone can cast or change a vote (no auth required)
         allow create, update: if true;
       }
     }

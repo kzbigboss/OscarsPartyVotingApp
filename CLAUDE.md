@@ -13,6 +13,7 @@ npx vitest run       # Run all tests once
 npx vitest run src/firebase/__tests__/parties.test.js  # Run a single test file
 mise install         # Install pinned Node 22.22.0 + firebase-tools
 mise exec -- firebase deploy  # Deploy to Firebase Hosting
+mise exec -- firebase deploy --only firestore:rules  # Deploy Firestore security rules only
 ```
 
 ## Architecture
@@ -26,7 +27,7 @@ Guests join via QR code URL → enter name → get a 3-digit guestId (100-999) s
 ### Firestore Data Model
 
 ```
-parties/{partyCode}          → name, hostPin, createdAt
+parties/{partyCode}          → name, hostPinHash, createdBy, createdAt, allLocked
   /categories/{categoryId}   → name, sortOrder, nominees[], locked, winnerId
   /guests/{guestId}          → displayName, isHost, score, joinedAt
   /votes/{guestId}_{catId}   → guestId, categoryId, nomineeId, timestamp
