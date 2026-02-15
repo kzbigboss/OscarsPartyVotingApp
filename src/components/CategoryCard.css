@@ -17,6 +17,22 @@
   cursor: pointer;
 }
 
+.header-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vote-summary {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+  margin-top: 2px;
+}
+
 .header-right {
   display: flex;
   align-items: center;

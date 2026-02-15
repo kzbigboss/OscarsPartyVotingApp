@@ -2,11 +2,17 @@ import './CategoryCard.css'
 
 export default function CategoryCard({ category, myVote, onVote, onClearVote, isHost, onLock, onUnlock, onSelectWinner, onClearWinner, expanded, onToggleExpand }) {
   const { name, nominees, locked, winnerId } = category
+  const votedNominee = myVote ? nominees.find(n => n.id === myVote) : null
 
   return (
     <div className={`category-card ${locked ? 'locked' : ''} ${winnerId ? 'announced' : ''}`}>
       <div className="category-header" onClick={onToggleExpand}>
-        <h3>{locked && '\u{1F512} '}{myVote ? '\u2611 ' : '\u2610 '}{name}</h3>
+        <div className="header-left">
+          <h3>{locked && '\u{1F512} '}{myVote ? '\u2611 ' : '\u2610 '}{name}</h3>
+          {!expanded && votedNominee && (
+            <span className="vote-summary">{votedNominee.name}</span>
+          )}
+        </div>
         <div className="header-right">
           {isHost && (
             <div className="host-controls" onClick={(e) => e.stopPropagation()}>
