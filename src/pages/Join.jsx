@@ -51,15 +51,18 @@ export default function Join() {
       <h1>{party.name}</h1>
       <p>Enter your name to join the party and start voting!</p>
       <form onSubmit={handleJoin}>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your name"
-          maxLength={30}
-          required
-          autoFocus
-        />
+        <label>
+          Your Name
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            maxLength={30}
+            required
+            autoFocus
+          />
+        </label>
         <button type="submit" disabled={joining}>
           {joining ? 'Joining...' : 'Join Party'}
         </button>

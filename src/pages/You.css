@@ -30,6 +30,15 @@
   gap: var(--spacing-sm);
 }
 
+.name-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
 .name-error {
   color: var(--color-error);
   font-size: 13px;

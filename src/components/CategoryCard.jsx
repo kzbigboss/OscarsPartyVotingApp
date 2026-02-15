@@ -35,7 +35,14 @@ export default function CategoryCard({ category, myVote, onVote, onClearVote, is
 
   return (
     <div className={`category-card ${locked ? 'locked' : ''} ${winnerId ? 'announced' : ''}`}>
-      <div className="category-header" onClick={onToggleExpand}>
+      <div
+        className="category-header"
+        onClick={onToggleExpand}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleExpand(); } }}
+        aria-expanded={expanded}
+      >
         <div className="header-left">
           <h3 className={isCorrect ? 'vote-correct' : isIncorrect ? 'vote-incorrect' : ''}>{locked && '\u{1F512} '}{statusIcon}{name}</h3>
           {renderCollapsedSummary()}
@@ -63,7 +70,7 @@ export default function CategoryCard({ category, myVote, onVote, onClearVote, is
         </div>
       </div>
       {expanded && (
-        <ul className="nominee-list">
+        <ul className="nominee-list" role="listbox" aria-label={name}>
           {nominees.map((nominee) => (
             <li
               key={nominee.id}
@@ -77,6 +84,17 @@ export default function CategoryCard({ category, myVote, onVote, onClearVote, is
                 if (locked) return
                 if (myVote === nominee.id) onClearVote(category.id)
                 else onVote(category.id, nominee.id)
+              }}
+              role="option"
+              tabIndex={locked ? -1 : 0}
+              aria-selected={myVote === nominee.id}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  if (locked) return
+                  if (myVote === nominee.id) onClearVote(category.id)
+                  else onVote(category.id, nominee.id)
+                }
               }}
             >
               <span className="nominee-name">{nominee.name}</span>

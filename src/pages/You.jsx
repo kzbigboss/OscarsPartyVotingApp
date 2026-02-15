@@ -55,13 +55,16 @@ export default function You() {
       <div className="you-card">
         <div className="guest-id-label">Guest #{guestId}</div>
         <form className="name-form" onSubmit={handleSaveName}>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            maxLength={30}
-          />
+          <label>
+            Your Name
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              maxLength={30}
+            />
+          </label>
           <button
             type="submit"
             className="btn-small"

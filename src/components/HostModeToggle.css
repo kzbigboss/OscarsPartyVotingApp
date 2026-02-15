@@ -20,6 +20,15 @@
   gap: var(--spacing-sm);
 }
 
+.host-prompt label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
 .host-prompt input {
   flex: 1;
   padding: var(--spacing-xs) var(--spacing-sm);
