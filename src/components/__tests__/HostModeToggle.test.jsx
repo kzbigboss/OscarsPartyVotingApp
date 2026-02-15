@@ -96,4 +96,26 @@ describe('HostModeToggle', () => {
     render(<HostModeToggle partyCode="ABC123" onActivate={mockOnActivate} />)
     expect(screen.getByText('Host Mode')).toHaveClass('host-mode-link')
   })
+
+  it('shows error message when Firestore write fails', async () => {
+    updateDoc.mockRejectedValueOnce(new Error('Firestore unavailable'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<HostModeToggle partyCode="ABC123" onActivate={mockOnActivate} />)
+    fireEvent.click(screen.getByText('Host Mode'))
+    fireEvent.change(screen.getByPlaceholderText('Enter host PIN'), { target: { value: '1234' } })
+    fireEvent.submit(screen.getByText('Activate').closest('form'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not activate host mode. Please try again.')).toBeInTheDocument()
+    })
+    expect(mockOnActivate).not.toHaveBeenCalled()
+    expect(consoleSpy).toHaveBeenCalledWith('Failed to activate host mode:', expect.any(Error))
+
+    // Verify localStorage was not updated with isHost
+    const stored = JSON.parse(localStorage.getItem('guest_ABC123'))
+    expect(stored.isHost).toBeUndefined()
+
+    consoleSpy.mockRestore()
+  })
 })
