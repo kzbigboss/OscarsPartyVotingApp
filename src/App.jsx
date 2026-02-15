@@ -8,7 +8,6 @@ const Home = lazy(() => import('./pages/Home'))
 const Join = lazy(() => import('./pages/Join'))
 const Ballot = lazy(() => import('./pages/Ballot'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
-const Categories = lazy(() => import('./pages/Categories'))
 const You = lazy(() => import('./pages/You'))
 
 export default function App() {
@@ -22,7 +21,6 @@ export default function App() {
               <Route path="/:partyCode" element={<Join />} />
               <Route path="/:partyCode/ballot" element={<Ballot />} />
               <Route path="/:partyCode/leaderboard" element={<Leaderboard />} />
-              <Route path="/:partyCode/categories" element={<Categories />} />
               <Route path="/:partyCode/you" element={<You />} />
             </Routes>
           </Suspense>

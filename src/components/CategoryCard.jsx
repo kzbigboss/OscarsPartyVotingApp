@@ -3,15 +3,42 @@ import './CategoryCard.css'
 export default function CategoryCard({ category, myVote, onVote, onClearVote, isHost, onLock, onUnlock, onSelectWinner, onClearWinner, expanded, onToggleExpand }) {
   const { name, nominees, locked, winnerId } = category
   const votedNominee = myVote ? nominees.find(n => n.id === myVote) : null
+  const winnerNominee = winnerId ? nominees.find(n => n.id === winnerId) : null
+  const isCorrect = winnerId && myVote === winnerId
+  const isIncorrect = winnerId && myVote && myVote !== winnerId
+
+  const statusIcon = winnerId
+    ? (isCorrect ? '\u2713 ' : isIncorrect ? '\u2717 ' : '')
+    : (myVote ? '\u2611 ' : '\u2610 ')
+
+  const renderCollapsedSummary = () => {
+    if (expanded) return null
+    if (isCorrect && votedNominee) {
+      return <span className="vote-summary vote-correct">{votedNominee.name}</span>
+    }
+    if (isIncorrect && votedNominee && winnerNominee) {
+      return (
+        <span className="vote-summary vote-incorrect">
+          <s>{votedNominee.name}</s>
+          <span className="actual-winner"> → {winnerNominee.name}</span>
+        </span>
+      )
+    }
+    if (winnerId && !myVote && winnerNominee) {
+      return <span className="vote-summary vote-correct">Winner: {winnerNominee.name}</span>
+    }
+    if (votedNominee) {
+      return <span className="vote-summary">{votedNominee.name}</span>
+    }
+    return null
+  }
 
   return (
     <div className={`category-card ${locked ? 'locked' : ''} ${winnerId ? 'announced' : ''}`}>
       <div className="category-header" onClick={onToggleExpand}>
         <div className="header-left">
-          <h3>{locked && '\u{1F512} '}{myVote ? '\u2611 ' : '\u2610 '}{name}</h3>
-          {!expanded && votedNominee && (
-            <span className="vote-summary">{votedNominee.name}</span>
-          )}
+          <h3 className={isCorrect ? 'vote-correct' : isIncorrect ? 'vote-incorrect' : ''}>{locked && '\u{1F512} '}{statusIcon}{name}</h3>
+          {renderCollapsedSummary()}
         </div>
         <div className="header-right">
           {isHost && (

@@ -33,6 +33,22 @@
   margin-top: 2px;
 }
 
+.vote-correct {
+  color: var(--color-success);
+}
+
+.vote-incorrect {
+  color: var(--color-error);
+}
+
+.vote-incorrect s {
+  text-decoration: line-through;
+}
+
+.actual-winner {
+  color: var(--color-success);
+}
+
 .header-right {
   display: flex;
   align-items: center;
