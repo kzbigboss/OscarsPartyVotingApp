@@ -4,9 +4,11 @@ import { useCategories } from '../hooks/useCategories'
 import { useVotes } from '../hooks/useVotes'
 import { castVote, clearVote } from '../firebase/votes'
 import { lockCategory, unlockCategory, lockAllCategories, unlockAllCategories, selectWinner, clearWinner } from '../firebase/categories'
+import { calculateScores } from '../utils/scoring'
 import CategoryCard from '../components/CategoryCard'
 import NavBar from '../components/NavBar'
 import HostModeToggle from '../components/HostModeToggle'
+import ScoreIndicator from '../components/ScoreIndicator'
 import './Ballot.css'
 
 export default function Ballot() {
@@ -40,6 +42,10 @@ export default function Ballot() {
       myVotes[vote.categoryId] = vote.nomineeId
     }
   }
+
+  const scores = calculateScores(categories, votes)
+  const totalAnnounced = categories.filter((c) => c.winnerId).length
+  const myScore = scores[guestId] || { correct: 0, total: totalAnnounced }
 
   function toggleExpand(id) {
     setExpandedIds((prev) => {
@@ -146,6 +152,7 @@ export default function Ballot() {
             <button className="btn-small" onClick={handleUnlockAll}>Unlock All</button>
           </>
         )}
+        <ScoreIndicator correct={myScore.correct} total={myScore.total} />
       </div>
       <h1>Your Ballot</h1>
       {hostMode && (

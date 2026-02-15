@@ -21,6 +21,10 @@
   z-index: 100;
 }
 
+.floating-menu .score-indicator {
+  margin-left: auto;
+}
+
 .host-banner {
   display: flex;
   justify-content: center;
