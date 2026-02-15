@@ -13,7 +13,7 @@ vi.mock('../config', () => ({
 }))
 
 import { createParty, getParty, hashPin } from '../parties'
-import { setDoc, getDoc, doc } from 'firebase/firestore'
+import { setDoc, getDoc } from 'firebase/firestore'
 
 describe('parties', () => {
   beforeEach(() => {
