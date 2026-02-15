@@ -58,5 +58,13 @@ service cloud.firestore {
         allow create, update: if true;
       }
     }
+
+    match /config/{configId} {
+      // Anyone can read config (needed for maintenance check)
+      allow read: if true;
+
+      // No client writes — managed via Firebase Console only
+      allow write: if false;
+    }
   }
 }
