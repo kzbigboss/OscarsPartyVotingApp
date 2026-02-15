@@ -1,20 +1,28 @@
-import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from './config'
+
+const MAX_RETRIES = 10
 
 function generateGuestId() {
   return String(Math.floor(Math.random() * 900) + 100)
 }
 
 export async function joinParty(partyCode, displayName) {
-  const guestId = generateGuestId()
-  const guestRef = doc(db, 'parties', partyCode, 'guests', guestId)
-  await setDoc(guestRef, {
-    displayName,
-    isHost: false,
-    score: 0,
-    joinedAt: serverTimestamp(),
-  })
-  return { guestId }
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const guestId = generateGuestId()
+    const guestRef = doc(db, 'parties', partyCode, 'guests', guestId)
+    const existing = await getDoc(guestRef)
+    if (!existing.exists()) {
+      await setDoc(guestRef, {
+        displayName,
+        isHost: false,
+        score: 0,
+        joinedAt: serverTimestamp(),
+      })
+      return { guestId }
+    }
+  }
+  throw new Error('Could not generate a unique guest ID. Party may be full.')
 }
 
 export async function updateGuestName(partyCode, guestId, displayName) {
