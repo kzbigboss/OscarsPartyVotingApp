@@ -152,9 +152,11 @@ export default function Ballot() {
             <button className="btn-small" onClick={handleUnlockAll}>Unlock All</button>
           </>
         )}
+      </div>
+      <div className="ballot-title-row">
+        <h1>Your Ballot</h1>
         <ScoreIndicator correct={myScore.correct} total={myScore.total} />
       </div>
-      <h1>Your Ballot</h1>
       {hostMode && (
         <div className="host-banner">
           <span>Host Mode</span>
