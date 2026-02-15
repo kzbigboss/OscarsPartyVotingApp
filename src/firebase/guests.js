@@ -4,7 +4,7 @@ import { db } from './config'
 const MAX_RETRIES = 10
 
 function generateGuestId() {
-  return String(Math.floor(Math.random() * 900) + 100)
+  return String(Math.floor(Math.random() * 9000) + 1000)
 }
 
 export async function joinParty(partyCode, displayName, isHost = false) {
