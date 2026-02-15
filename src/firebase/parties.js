@@ -19,16 +19,28 @@ export async function hashPin(pin) {
 }
 
 export async function createParty(name, hostPin) {
-  const partyCode = generatePartyCode()
-  const partyRef = doc(db, 'parties', partyCode)
+  const maxAttempts = 3
   const hostPinHash = await hashPin(hostPin)
-  await setDoc(partyRef, {
-    name,
-    hostPinHash,
-    createdAt: serverTimestamp(),
-    allLocked: false,
-  })
-  return { partyCode }
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const partyCode = generatePartyCode()
+    const partyRef = doc(db, 'parties', partyCode)
+    const existing = await getDoc(partyRef)
+
+    if (!existing.exists()) {
+      await setDoc(partyRef, {
+        name,
+        hostPinHash,
+        createdAt: serverTimestamp(),
+        allLocked: false,
+      })
+      return { partyCode }
+    }
+  }
+
+  throw new Error(
+    'Failed to generate a unique party code after multiple attempts. Please try again.'
+  )
 }
 
 export async function getParty(partyCode) {
