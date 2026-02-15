@@ -18,7 +18,7 @@ export async function hashPin(pin) {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export async function createParty(name, hostPin) {
+export async function createParty(name, hostPin, createdBy) {
   const maxAttempts = 3
   const hostPinHash = await hashPin(hostPin)
 
@@ -31,6 +31,7 @@ export async function createParty(name, hostPin) {
       await setDoc(partyRef, {
         name,
         hostPinHash,
+        createdBy,
         createdAt: serverTimestamp(),
         allLocked: false,
       })

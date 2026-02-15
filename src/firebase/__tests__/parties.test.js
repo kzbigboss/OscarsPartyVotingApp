@@ -93,4 +93,12 @@ describe('parties', () => {
     const party = await getParty('NOPE00')
     expect(party).toBeNull()
   })
+
+  it('createParty stores createdBy UID in party document', async () => {
+    getDoc.mockResolvedValue({ exists: () => false })
+    setDoc.mockResolvedValue()
+    await createParty('Test Party', '1234', 'uid-abc-123')
+    const storedData = setDoc.mock.calls[0][1]
+    expect(storedData).toHaveProperty('createdBy', 'uid-abc-123')
+  })
 })
