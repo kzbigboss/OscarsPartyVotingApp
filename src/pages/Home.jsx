@@ -59,6 +59,7 @@ export default function Home() {
             value={partyName}
             onChange={(e) => setPartyName(e.target.value)}
             placeholder="Mark's Oscar Party 2026"
+            maxLength={60}
             required
           />
         </label>
@@ -69,6 +70,7 @@ export default function Home() {
             value={hostPin}
             onChange={(e) => setHostPin(e.target.value)}
             placeholder="A PIN to access host controls"
+            maxLength={20}
             required
           />
         </label>
