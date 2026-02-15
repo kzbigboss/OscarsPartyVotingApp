@@ -16,7 +16,7 @@ vi.mock('../config', () => ({
   db: {},
 }))
 
-import { seedCategories, lockCategory, unlockCategory, selectWinner } from '../categories'
+import { seedCategories, lockCategory, selectWinner } from '../categories'
 import { writeBatch, updateDoc } from 'firebase/firestore'
 
 describe('categories', () => {
