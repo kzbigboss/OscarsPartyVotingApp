@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
-  doc: vi.fn(),
+  doc: vi.fn(() => 'mock-doc-ref'),
   setDoc: vi.fn(),
   getDoc: vi.fn(),
   serverTimestamp: vi.fn(() => 'mock-timestamp'),
@@ -13,22 +13,46 @@ vi.mock('../config', () => ({
 }))
 
 import { createParty, getParty, hashPin } from '../parties'
-import { setDoc, getDoc } from 'firebase/firestore'
+import { setDoc, getDoc, doc } from 'firebase/firestore'
 
 describe('parties', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('createParty generates a party code and writes to firestore', async () => {
+  it('createParty checks for existing party before writing', async () => {
+    getDoc.mockResolvedValue({ exists: () => false })
     setDoc.mockResolvedValue()
     const result = await createParty('Test Party', '1234')
-    expect(setDoc).toHaveBeenCalled()
+    expect(getDoc).toHaveBeenCalledTimes(1)
+    expect(setDoc).toHaveBeenCalledTimes(1)
     expect(result).toHaveProperty('partyCode')
     expect(result.partyCode).toHaveLength(6)
   })
 
+  it('createParty retries on collision and succeeds', async () => {
+    getDoc
+      .mockResolvedValueOnce({ exists: () => true })
+      .mockResolvedValueOnce({ exists: () => false })
+    setDoc.mockResolvedValue()
+    const result = await createParty('Test Party', '1234')
+    expect(getDoc).toHaveBeenCalledTimes(2)
+    expect(setDoc).toHaveBeenCalledTimes(1)
+    expect(result).toHaveProperty('partyCode')
+    expect(result.partyCode).toHaveLength(6)
+  })
+
+  it('createParty throws after max collision attempts', async () => {
+    getDoc.mockResolvedValue({ exists: () => true })
+    await expect(createParty('Test Party', '1234')).rejects.toThrow(
+      'Failed to generate a unique party code after multiple attempts'
+    )
+    expect(getDoc).toHaveBeenCalledTimes(3)
+    expect(setDoc).not.toHaveBeenCalled()
+  })
+
   it('createParty stores hostPinHash instead of raw hostPin', async () => {
+    getDoc.mockResolvedValue({ exists: () => false })
     setDoc.mockResolvedValue()
     await createParty('Test Party', '1234')
     const storedData = setDoc.mock.calls[0][1]
