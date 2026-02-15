@@ -49,6 +49,7 @@ export default function Join() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
+          maxLength={30}
           required
           autoFocus
         />
