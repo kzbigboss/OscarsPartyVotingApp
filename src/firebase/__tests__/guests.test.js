@@ -54,4 +54,20 @@ describe('guests', () => {
     expect(getDoc).toHaveBeenCalledTimes(10)
     expect(setDoc).not.toHaveBeenCalled()
   })
+
+  it('joinParty sets isHost to true when passed', async () => {
+    getDoc.mockResolvedValue({ exists: () => false })
+    setDoc.mockResolvedValue()
+    await joinParty('ABC123', 'Alice', true)
+    const storedData = setDoc.mock.calls[0][1]
+    expect(storedData).toHaveProperty('isHost', true)
+  })
+
+  it('joinParty defaults isHost to false when not passed', async () => {
+    getDoc.mockResolvedValue({ exists: () => false })
+    setDoc.mockResolvedValue()
+    await joinParty('ABC123', 'Bob')
+    const storedData = setDoc.mock.calls[0][1]
+    expect(storedData).toHaveProperty('isHost', false)
+  })
 })

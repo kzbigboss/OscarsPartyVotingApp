@@ -7,7 +7,7 @@ function generateGuestId() {
   return String(Math.floor(Math.random() * 900) + 100)
 }
 
-export async function joinParty(partyCode, displayName) {
+export async function joinParty(partyCode, displayName, isHost = false) {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const guestId = generateGuestId()
     const guestRef = doc(db, 'parties', partyCode, 'guests', guestId)
@@ -15,7 +15,7 @@ export async function joinParty(partyCode, displayName) {
     if (!existing.exists()) {
       await setDoc(guestRef, {
         displayName,
-        isHost: false,
+        isHost,
         score: 0,
         joinedAt: serverTimestamp(),
       })
