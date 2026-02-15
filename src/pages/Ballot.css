@@ -4,7 +4,7 @@
 }
 
 .ballot h1 {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0;
 }
 
 .floating-menu {
@@ -21,8 +21,15 @@
   z-index: 100;
 }
 
-.floating-menu .score-indicator {
-  margin-left: auto;
+.ballot-title-row {
+  position: sticky;
+  top: 46px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg);
+  padding: var(--spacing-md) 0 var(--spacing-sm) 0;
+  z-index: 99;
 }
 
 .host-banner {
