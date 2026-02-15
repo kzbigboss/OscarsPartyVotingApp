@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories'
 import { useVotes } from '../hooks/useVotes'
@@ -19,6 +19,20 @@ export default function Ballot() {
   const isHost = stored.isHost || false
   const [hostMode, setHostMode] = useState(isHost)
   const [expandedIds, setExpandedIds] = useState(new Set())
+  const [error, setError] = useState(null)
+  const errorTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+    }
+  }, [])
+
+  function showError(message) {
+    setError(message)
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+    errorTimerRef.current = setTimeout(() => setError(null), 3000)
+  }
 
   const myVotes = {}
   for (const vote of votes) {
@@ -44,42 +58,85 @@ export default function Ballot() {
     setExpandedIds(new Set())
   }
 
-  function handleVote(categoryId, nomineeId) {
-    castVote(partyCode, guestId, categoryId, nomineeId)
+  async function handleVote(categoryId, nomineeId) {
+    try {
+      await castVote(partyCode, guestId, categoryId, nomineeId)
+    } catch (err) {
+      console.error('Failed to cast vote:', err)
+      showError('Vote failed. Please try again.')
+    }
   }
 
-  function handleClearVote(categoryId) {
-    clearVote(partyCode, guestId, categoryId)
+  async function handleClearVote(categoryId) {
+    try {
+      await clearVote(partyCode, guestId, categoryId)
+    } catch (err) {
+      console.error('Failed to clear vote:', err)
+      showError('Could not undo vote. Please try again.')
+    }
   }
 
-  function handleLock(categoryId) {
-    lockCategory(partyCode, categoryId)
+  async function handleLock(categoryId) {
+    try {
+      await lockCategory(partyCode, categoryId)
+    } catch (err) {
+      console.error('Failed to lock category:', err)
+      showError('Could not lock category. Please try again.')
+    }
   }
 
-  function handleUnlock(categoryId) {
-    unlockCategory(partyCode, categoryId)
+  async function handleUnlock(categoryId) {
+    try {
+      await unlockCategory(partyCode, categoryId)
+    } catch (err) {
+      console.error('Failed to unlock category:', err)
+      showError('Could not unlock category. Please try again.')
+    }
   }
 
-  function handleSelectWinner(categoryId, nomineeId) {
-    selectWinner(partyCode, categoryId, nomineeId)
+  async function handleSelectWinner(categoryId, nomineeId) {
+    try {
+      await selectWinner(partyCode, categoryId, nomineeId)
+    } catch (err) {
+      console.error('Failed to select winner:', err)
+      showError('Could not select winner. Please try again.')
+    }
   }
 
-  function handleClearWinner(categoryId) {
-    clearWinner(partyCode, categoryId)
+  async function handleClearWinner(categoryId) {
+    try {
+      await clearWinner(partyCode, categoryId)
+    } catch (err) {
+      console.error('Failed to clear winner:', err)
+      showError('Could not clear winner. Please try again.')
+    }
   }
 
-  function handleLockAll() {
-    lockAllCategories(partyCode, categories.map((c) => c.id))
+  async function handleLockAll() {
+    try {
+      await lockAllCategories(partyCode, categories.map((c) => c.id))
+    } catch (err) {
+      console.error('Failed to lock all categories:', err)
+      showError('Could not lock all categories. Please try again.')
+    }
   }
 
-  function handleUnlockAll() {
-    unlockAllCategories(partyCode, categories.map((c) => c.id))
+  async function handleUnlockAll() {
+    try {
+      await unlockAllCategories(partyCode, categories.map((c) => c.id))
+    } catch (err) {
+      console.error('Failed to unlock all categories:', err)
+      showError('Could not unlock all categories. Please try again.')
+    }
   }
 
   if (loading) return <div className="ballot"><p>Loading...</p></div>
 
   return (
     <div className="ballot">
+      {error && (
+        <div className="error-toast" role="alert">{error}</div>
+      )}
       <div className="floating-menu">
         <button className="btn-small" onClick={expandAll}>Expand All</button>
         <button className="btn-small" onClick={collapseAll}>Collapse All</button>

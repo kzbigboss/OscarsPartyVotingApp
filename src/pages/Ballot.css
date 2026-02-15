@@ -34,6 +34,21 @@
   font-size: 14px;
 }
 
+.error-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-error);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius);
+  z-index: 1000;
+  font-size: 0.9rem;
+  text-align: center;
+  max-width: 90%;
+}
+
 .nav-spacer {
   height: 60px;
 }

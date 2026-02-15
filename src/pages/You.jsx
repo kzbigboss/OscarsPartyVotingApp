@@ -17,6 +17,7 @@ export default function You() {
 
   const [name, setName] = useState(displayName)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
 
   const myVotes = {}
   for (const vote of votes) {
@@ -30,9 +31,15 @@ export default function You() {
     const trimmed = name.trim()
     if (!trimmed || trimmed === displayName) return
     setSaving(true)
-    await updateGuestName(partyCode, guestId, trimmed)
-    const updated = { ...stored, displayName: trimmed }
-    localStorage.setItem(`guest_${partyCode}`, JSON.stringify(updated))
+    setError(null)
+    try {
+      await updateGuestName(partyCode, guestId, trimmed)
+      const updated = { ...stored, displayName: trimmed }
+      localStorage.setItem(`guest_${partyCode}`, JSON.stringify(updated))
+    } catch (err) {
+      console.error('Failed to update name:', err)
+      setError('Could not save name. Please try again.')
+    }
     setSaving(false)
   }
 
@@ -63,6 +70,9 @@ export default function You() {
             {saving ? 'Saving...' : 'Save'}
           </button>
         </form>
+        {error && (
+          <div className="name-error" role="alert">{error}</div>
+        )}
       </div>
 
       <h2>Your Votes ({votedCount} / {categories.length})</h2>

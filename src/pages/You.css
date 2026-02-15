@@ -30,6 +30,12 @@
   gap: var(--spacing-sm);
 }
 
+.name-error {
+  color: var(--color-error);
+  font-size: 13px;
+  margin-top: var(--spacing-sm);
+}
+
 .name-form input {
   flex: 1;
   padding: var(--spacing-sm);
