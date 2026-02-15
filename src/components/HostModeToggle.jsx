@@ -36,14 +36,17 @@ export default function HostModeToggle({ partyCode, onActivate }) {
     return (
       <div className="host-prompt">
         <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            autoComplete="off"
-            value={pin}
-            onChange={(e) => { setPin(e.target.value); setError('') }}
-            placeholder="Enter host PIN"
-            autoFocus
-          />
+          <label>
+            Host PIN
+            <input
+              type="password"
+              autoComplete="off"
+              value={pin}
+              onChange={(e) => { setPin(e.target.value); setError('') }}
+              placeholder="Enter host PIN"
+              autoFocus
+            />
+          </label>
           <button type="submit">Activate</button>
           <button type="button" onClick={() => setShowPrompt(false)}>Cancel</button>
         </form>
