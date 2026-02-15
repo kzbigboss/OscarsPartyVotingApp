@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useParty } from '../hooks/useParty'
+import { useAuthContext } from '../context/AuthContext'
 import { joinParty } from '../firebase/guests'
 import './Join.css'
 
@@ -8,6 +9,7 @@ export default function Join() {
   const { partyCode } = useParams()
   const navigate = useNavigate()
   const { party, loading } = useParty(partyCode)
+  const { user } = useAuthContext()
   const [name, setName] = useState('')
   const [joining, setJoining] = useState(false)
 
@@ -23,11 +25,16 @@ export default function Join() {
     if (!name.trim()) return
     setJoining(true)
     try {
-      const { guestId } = await joinParty(partyCode, name.trim())
-      localStorage.setItem(`guest_${partyCode}`, JSON.stringify({
+      const isCreator = user?.uid && user.uid === party?.createdBy
+      const { guestId } = await joinParty(partyCode, name.trim(), isCreator)
+      const guestData = {
         guestId,
         displayName: name.trim(),
-      }))
+      }
+      if (isCreator) {
+        guestData.isHost = true
+      }
+      localStorage.setItem(`guest_${partyCode}`, JSON.stringify(guestData))
       navigate(`/${partyCode}/ballot`)
     } catch (err) {
       console.error('Failed to join party:', err)
