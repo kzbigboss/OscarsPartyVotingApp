@@ -67,3 +67,13 @@
   font-weight: 600;
   color: var(--color-text);
 }
+
+.sign-out-link {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: var(--spacing-md);
+  text-decoration: underline;
+}
