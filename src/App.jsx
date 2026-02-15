@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ErrorBoundary from './components/ErrorBoundary'
+import { useMaintenance } from './hooks/useMaintenance'
+import MaintenancePage from './pages/MaintenancePage'
 import './App.css'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -10,7 +12,17 @@ const Ballot = lazy(() => import('./pages/Ballot'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
 const You = lazy(() => import('./pages/You'))
 
-export default function App() {
+function AppContent() {
+  const { maintenance, loading } = useMaintenance()
+
+  if (loading) {
+    return <div className="loading-screen">Loading…</div>
+  }
+
+  if (maintenance?.enabled) {
+    return <MaintenancePage message={maintenance.message} />
+  }
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
@@ -28,4 +40,8 @@ export default function App() {
       </ErrorBoundary>
     </BrowserRouter>
   )
+}
+
+export default function App() {
+  return <AppContent />
 }
