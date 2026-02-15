@@ -13,7 +13,7 @@ export default function HostModeToggle({ partyCode, onActivate }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    const hashedInput = await hashPin(pin)
+    const hashedInput = await hashPin(pin, partyCode)
     if (hashedInput === party?.hostPinHash) {
       try {
         const stored = JSON.parse(localStorage.getItem(`guest_${partyCode}`) || '{}')

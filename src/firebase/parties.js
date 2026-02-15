@@ -10,9 +10,11 @@ function generatePartyCode() {
   return code
 }
 
-export async function hashPin(pin) {
+// Salt prevents rainbow-table attacks across parties.
+// Breaking change: existing (unsalted) hashes will no longer match — acceptable pre-launch.
+export async function hashPin(pin, salt = '') {
   const encoder = new TextEncoder()
-  const data = encoder.encode(pin)
+  const data = encoder.encode(salt + pin)
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
@@ -20,7 +22,6 @@ export async function hashPin(pin) {
 
 export async function createParty(name, hostPin, createdBy) {
   const maxAttempts = 3
-  const hostPinHash = await hashPin(hostPin)
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const partyCode = generatePartyCode()
@@ -28,6 +29,7 @@ export async function createParty(name, hostPin, createdBy) {
     const existing = await getDoc(partyRef)
 
     if (!existing.exists()) {
+      const hostPinHash = await hashPin(hostPin, partyCode)
       await setDoc(partyRef, {
         name,
         hostPinHash,
