@@ -1,24 +1,41 @@
 rules_version = '2';
+
+// Oscars Party Voting App — Firestore Security Rules
+//
+// These rules are intentionally permissive. The app uses a trusted-party
+// model: guests join only via a QR code / party link shared by the host,
+// so there is no anonymous public access surface.
+//
+// The project runs on the Firebase Spark (free) plan, which does not
+// support Firebase Auth — the prerequisite for meaningful auth-based
+// rules. Full security hardening is tracked in:
+//   - Issue #3 (Firebase Auth integration)
+//   - Issue #4 (auth-based Firestore rules)
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /parties/{partyCode} {
+      // Party metadata (name, hostPin, createdAt)
       allow read: if true;
       allow create: if true;
       allow update: if true;
 
       match /categories/{categoryId} {
+        // Oscar categories with nominees, lock state, and winner
         allow read: if true;
         allow write: if true;
       }
 
       match /guests/{guestId} {
+        // Guest profiles (displayName, isHost, score)
         allow read: if true;
         allow create: if true;
         allow update: if true;
       }
 
       match /votes/{voteId} {
+        // Votes keyed as {guestId}_{categoryId} for natural dedup
         allow read: if true;
         allow create, update: if true;
       }
