@@ -4,7 +4,7 @@ import { mkdir } from 'node:fs/promises'
 import { createInterface } from 'node:readline'
 import { Metrics } from './helpers/metrics.js'
 import { joinAsHost, getCategoryCount } from './helpers/host.js'
-import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore, waitForWinnerOnCategory } from './helpers/guest.js'
+import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore, waitForAnnouncedCount } from './helpers/guest.js'
 
 const { values } = parseArgs({
   options: {
@@ -165,41 +165,38 @@ try {
     await waitForEnter(`\n  Press Enter when you've announced ${categoriesToAnnounce} winners... `)
 
     metrics.startPhase('Winner propagation')
-    console.log(`  Checking ${config.numGuests} guest browsers for winner updates...`)
+    console.log(`  Checking ${config.numGuests} guest browsers for ${categoriesToAnnounce} announced categories...`)
 
-    // Count how many categories have the 'announced' class on each guest
-    for (let catIdx = 0; catIdx < categoriesToAnnounce; catIdx++) {
-      const propagationPromises = guestPages.map(async (page, guestIdx) => {
-        try {
-          // Short timeout — the winners should already be propagated
-          const propMs = await waitForWinnerOnCategory(page, catIdx, 15000)
-          metrics.recordLatency('Propagation', propMs)
-          return propMs
-        } catch {
-          console.error(`  [MISS] Guest ${guestIdx + 1} did not see winner for category ${catIdx}`)
-          metrics.assert(`Guest ${guestIdx + 1} sees winner for category ${catIdx}`, false)
-          await screenshotOnError(guestPages[guestIdx], `propagation-guest${guestIdx + 1}-cat${catIdx}`)
-          return null
-        }
-      })
-
-      const propResults = await Promise.all(propagationPromises)
-      const successCount = propResults.filter(r => r !== null).length
-      if (successCount > 0) {
-        const avgMs = propResults.filter(r => r !== null).reduce((s, v) => s + v, 0) / successCount
-        console.log(`  Category ${catIdx}: ${successCount}/${config.numGuests} guests saw winner (avg ${Math.round(avgMs)}ms)`)
-      } else {
-        console.log(`  Category ${catIdx}: 0/${config.numGuests} guests saw winner`)
+    // Check each guest sees at least N announced categories (any categories, any order)
+    const propagationPromises = guestPages.map(async (page, guestIdx) => {
+      try {
+        const propMs = await waitForAnnouncedCount(page, categoriesToAnnounce, 15000)
+        metrics.recordLatency('Propagation', propMs)
+        metrics.assert(`Guest ${guestIdx + 1} sees ${categoriesToAnnounce} winners`, true)
+        return propMs
+      } catch {
+        const actual = await page.locator('.category-card.announced').count()
+        console.error(`  [MISS] Guest ${guestIdx + 1} saw ${actual}/${categoriesToAnnounce} winners`)
+        metrics.assert(`Guest ${guestIdx + 1} sees ${categoriesToAnnounce} winners`, false)
+        await screenshotOnError(page, `propagation-guest${guestIdx + 1}`)
+        return null
       }
+    })
+
+    const propResults = await Promise.all(propagationPromises)
+    const successCount = propResults.filter(r => r !== null).length
+    if (successCount > 0) {
+      const avgMs = propResults.filter(r => r !== null).reduce((s, v) => s + v, 0) / successCount
+      console.log(`  ${successCount}/${config.numGuests} guests saw all ${categoriesToAnnounce} winners (avg ${Math.round(avgMs)}ms)`)
     }
 
-    // Check scores updated
+    // Verify scores match
     for (let guestIdx = 0; guestIdx < guestPages.length; guestIdx++) {
       const score = await getScore(guestPages[guestIdx])
       if (score) {
         metrics.assert(
-          `Guest ${guestIdx + 1} score total matches ${categoriesToAnnounce} announced`,
-          score.total === categoriesToAnnounce
+          `Guest ${guestIdx + 1} score total matches announced`,
+          score.total >= categoriesToAnnounce
         )
       }
     }

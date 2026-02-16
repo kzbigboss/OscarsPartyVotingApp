@@ -100,16 +100,15 @@ export async function goToBallot(page) {
 }
 
 /**
- * Wait for a winner badge to appear on a specific category card.
- * Returns the time (ms) until the badge is visible.
+ * Wait for at least `expectedCount` categories to have the 'announced' class.
+ * Returns the time (ms) until the count is reached.
  */
-export async function waitForWinnerOnCategory(page, categoryIndex, timeoutMs = 10000) {
+export async function waitForAnnouncedCount(page, expectedCount, timeoutMs = 15000) {
   const start = Date.now()
 
-  // The card gets the 'announced' class when a winner is set (visible even when collapsed)
   await page.waitForFunction(
-    (idx) => document.querySelectorAll('.category-card')[idx]?.classList.contains('announced'),
-    categoryIndex,
+    (n) => document.querySelectorAll('.category-card.announced').length >= n,
+    expectedCount,
     { timeout: timeoutMs }
   )
   return Date.now() - start
