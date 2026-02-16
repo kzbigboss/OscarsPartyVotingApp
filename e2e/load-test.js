@@ -1,5 +1,6 @@
 import { chromium } from 'playwright'
 import { parseArgs } from 'node:util'
+import { mkdir } from 'node:fs/promises'
 import { Metrics } from './helpers/metrics.js'
 import { joinAsHost, getCategoryCount } from './helpers/host.js'
 import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore } from './helpers/guest.js'
@@ -23,6 +24,19 @@ const config = {
   hostPin: values['host-pin'],
   numGuests: parseInt(values.guests, 10),
   headed: values.headed,
+}
+
+const SCREENSHOT_DIR = new URL('./screenshots', import.meta.url).pathname
+await mkdir(SCREENSHOT_DIR, { recursive: true })
+
+async function screenshotOnError(page, label) {
+  try {
+    const filename = `${label.replace(/\s+/g, '-')}-${Date.now()}.png`
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/${filename}`, fullPage: true })
+    console.log(`  Screenshot saved: e2e/screenshots/${filename}`)
+  } catch {
+    // Screenshot failed, continue
+  }
 }
 
 const metrics = new Metrics()
@@ -95,6 +109,7 @@ try {
         const guestName = `Guest ${guestIdx + 1}`
         console.error(`  [ERROR] ${guestName} failed voting on category ${catIdx}: ${err.message}`)
         metrics.assert(`${guestName} votes on category ${catIdx}`, false)
+        await screenshotOnError(page, `${guestName}-cat${catIdx}`)
         return { skipped: true }
       }
     })
@@ -147,6 +162,7 @@ try {
       } catch (err) {
         console.error(`  [ERROR] Guest ${guestIdx + 1} did not see winner for category ${catIdx}`)
         metrics.assert(`Guest ${guestIdx + 1} sees winner for category ${catIdx}`, false)
+        await screenshotOnError(guestPages[guestIdx], `propagation-guest${guestIdx + 1}-cat${catIdx}`)
         return null
       }
     })
