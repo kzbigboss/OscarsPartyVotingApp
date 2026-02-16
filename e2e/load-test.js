@@ -12,11 +12,12 @@ const { values } = parseArgs({
     guests: { type: 'string', default: '10' },
     categories: { type: 'string', default: '5' },
     headed: { type: 'boolean', default: false },
+    'with-winners': { type: 'boolean', default: false },
   },
 })
 
 if (!values.url || !values['host-pin']) {
-  console.error('Usage: node e2e/load-test.js --url <partyUrl> --host-pin <pin> [--guests N] [--categories N] [--headed]')
+  console.error('Usage: node e2e/load-test.js --url <partyUrl> --host-pin <pin> [--guests N] [--categories N] [--headed] [--with-winners]')
   process.exit(1)
 }
 
@@ -26,6 +27,7 @@ const config = {
   numGuests: parseInt(values.guests, 10),
   categoriesToAnnounce: parseInt(values.categories, 10),
   headed: values.headed,
+  withWinners: values['with-winners'],
 }
 
 const SCREENSHOT_DIR = new URL('./screenshots', import.meta.url).pathname
@@ -43,7 +45,11 @@ async function screenshotOnError(page, label) {
 
 const metrics = new Metrics()
 
-console.log(`\nLoad test: ${config.numGuests} guests, ${config.categoriesToAnnounce} winners against ${config.url}\n`)
+console.log(`\nLoad test: ${config.numGuests} guests against ${config.url}`)
+if (config.withWinners) {
+  console.log(`  Winner announcements: ${config.categoriesToAnnounce} categories`)
+}
+console.log()
 
 const browser = await chromium.launch({ headless: !config.headed })
 
@@ -83,8 +89,8 @@ try {
   }
 
   // Verify all guests appear on leaderboard
-  const leaderboardNames = await getLeaderboardNames(guestPages[0])
   const expectedCount = config.numGuests + 1 // guests + host
+  const leaderboardNames = await getLeaderboardNames(guestPages[0], expectedCount)
   metrics.assert(
     `Leaderboard shows ${expectedCount} participants`,
     leaderboardNames.length >= expectedCount
@@ -138,63 +144,67 @@ try {
   }
   await goToBallot(guestPages[0])
 
-  // === Phase 4: Host Announces Winners ===
-  metrics.startPhase('Winner announcements')
-  const categoriesToAnnounce = Math.min(config.categoriesToAnnounce, categoryCount)
-  console.log(`[Phase 4] Host announcing winners for ${categoriesToAnnounce} categories...`)
+  // === Phase 4: Host Announces Winners (requires Google Auth) ===
+  if (config.withWinners) {
+    metrics.startPhase('Winner announcements')
+    const categoriesToAnnounce = Math.min(config.categoriesToAnnounce, categoryCount)
+    console.log(`[Phase 4] Host announcing winners for ${categoriesToAnnounce} categories...`)
 
-  const { lockCategory, selectWinner } = await import('./helpers/host.js')
-  const { waitForWinnerOnCategory } = await import('./helpers/guest.js')
+    const { lockCategory, selectWinner } = await import('./helpers/host.js')
+    const { waitForWinnerOnCategory } = await import('./helpers/guest.js')
 
-  for (let catIdx = 0; catIdx < categoriesToAnnounce; catIdx++) {
-    // Host locks the category
-    await lockCategory(hostPage, catIdx)
+    for (let catIdx = 0; catIdx < categoriesToAnnounce; catIdx++) {
+      // Host locks the category
+      await lockCategory(hostPage, catIdx)
 
-    // Host selects winner (first nominee)
-    const winnerName = await selectWinner(hostPage, catIdx)
-    console.log(`  Category ${catIdx}: winner = ${winnerName}`)
+      // Host selects winner (first nominee)
+      const winnerName = await selectWinner(hostPage, catIdx)
+      console.log(`  Category ${catIdx}: winner = ${winnerName}`)
 
-    // Measure propagation to all guests
-    const propagationPromises = guestPages.map(async (page, guestIdx) => {
-      try {
-        const propMs = await waitForWinnerOnCategory(page, catIdx, 10000)
-        metrics.recordLatency('Propagation', propMs)
-        return propMs
-      } catch (err) {
-        console.error(`  [ERROR] Guest ${guestIdx + 1} did not see winner for category ${catIdx}`)
-        metrics.assert(`Guest ${guestIdx + 1} sees winner for category ${catIdx}`, false)
-        await screenshotOnError(guestPages[guestIdx], `propagation-guest${guestIdx + 1}-cat${catIdx}`)
-        return null
-      }
-    })
+      // Measure propagation to all guests
+      const propagationPromises = guestPages.map(async (page, guestIdx) => {
+        try {
+          const propMs = await waitForWinnerOnCategory(page, catIdx, 10000)
+          metrics.recordLatency('Propagation', propMs)
+          return propMs
+        } catch (err) {
+          console.error(`  [ERROR] Guest ${guestIdx + 1} did not see winner for category ${catIdx}`)
+          metrics.assert(`Guest ${guestIdx + 1} sees winner for category ${catIdx}`, false)
+          await screenshotOnError(guestPages[guestIdx], `propagation-guest${guestIdx + 1}-cat${catIdx}`)
+          return null
+        }
+      })
 
-    const propResults = await Promise.all(propagationPromises)
-    const successCount = propResults.filter(r => r !== null).length
-    const avgMs = propResults.filter(r => r !== null).reduce((s, v) => s + v, 0) / successCount
-    console.log(`    ${successCount}/${config.numGuests} guests saw update (avg ${Math.round(avgMs)}ms)`)
-  }
-
-  // Final assertion: check scores are consistent
-  for (let guestIdx = 0; guestIdx < guestPages.length; guestIdx++) {
-    const score = await getScore(guestPages[guestIdx])
-    if (score) {
-      metrics.assert(
-        `Guest ${guestIdx + 1} score <= ${categoriesToAnnounce} announced`,
-        score.correct <= categoriesToAnnounce && score.total === categoriesToAnnounce
-      )
+      const propResults = await Promise.all(propagationPromises)
+      const successCount = propResults.filter(r => r !== null).length
+      const avgMs = propResults.filter(r => r !== null).reduce((s, v) => s + v, 0) / successCount
+      console.log(`    ${successCount}/${config.numGuests} guests saw update (avg ${Math.round(avgMs)}ms)`)
     }
+
+    // Final assertion: check scores are consistent
+    for (let guestIdx = 0; guestIdx < guestPages.length; guestIdx++) {
+      const score = await getScore(guestPages[guestIdx])
+      if (score) {
+        metrics.assert(
+          `Guest ${guestIdx + 1} score <= ${categoriesToAnnounce} announced`,
+          score.correct <= categoriesToAnnounce && score.total === categoriesToAnnounce
+        )
+      }
+    }
+
+    await goToBallot(guestPages[0])
+    metrics.endPhase()
+  } else {
+    console.log('[Phase 4] Skipped (requires --with-winners and Google Auth on host session)')
   }
 
   // Check leaderboard final state
-  const finalNames = await getLeaderboardNames(guestPages[0])
+  const finalNames = await getLeaderboardNames(guestPages[0], expectedCount)
   metrics.assert(
     `Final leaderboard shows all ${expectedCount} participants`,
     finalNames.length >= expectedCount
   )
   console.log(`  Final leaderboard: ${finalNames.length} participants`)
-
-  await goToBallot(guestPages[0])
-  metrics.endPhase()
 
   // === Reporting ===
   const allPassed = metrics.report()

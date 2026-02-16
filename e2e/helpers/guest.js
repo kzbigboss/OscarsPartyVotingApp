@@ -4,7 +4,8 @@
  */
 export async function joinParty(page, partyUrl, displayName) {
   const start = Date.now()
-  await page.goto(partyUrl, { waitUntil: 'networkidle' })
+  await page.goto(partyUrl, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('input[placeholder="Your name"]', { timeout: 15000 })
   await page.fill('input[placeholder="Your name"]', displayName)
   await page.click('button:has-text("Join Party")')
   await page.waitForURL(/\/ballot$/, { timeout: 15000 })
@@ -60,9 +61,20 @@ export async function voteOnCategory(page, categoryIndex) {
 /**
  * Navigate to the leaderboard and return the list of guest names shown.
  */
-export async function getLeaderboardNames(page) {
+export async function getLeaderboardNames(page, expectedCount = 0) {
   await page.click('.nav-bar a:has-text("Leaderboard")')
   await page.waitForSelector('.rank-row', { timeout: 15000 })
+
+  // If we expect a specific count, poll briefly for Firestore propagation
+  if (expectedCount > 0) {
+    const deadline = Date.now() + 10000
+    while (Date.now() < deadline) {
+      const count = await page.locator('.rank-row').count()
+      if (count >= expectedCount) break
+      await page.waitForTimeout(500)
+    }
+  }
+
   const names = await page.locator('.guest-name').allInnerTexts()
   return names
 }
@@ -92,11 +104,14 @@ export async function goToBallot(page) {
  * Returns the time (ms) until the badge is visible.
  */
 export async function waitForWinnerOnCategory(page, categoryIndex, timeoutMs = 10000) {
-  const card = page.locator('.category-card').nth(categoryIndex)
   const start = Date.now()
 
-  // The card gets the 'announced' class when a winner is set
-  await card.locator('.winner-badge').waitFor({ timeout: timeoutMs })
+  // The card gets the 'announced' class when a winner is set (visible even when collapsed)
+  await page.waitForFunction(
+    (idx) => document.querySelectorAll('.category-card')[idx]?.classList.contains('announced'),
+    categoryIndex,
+    { timeout: timeoutMs }
+  )
   return Date.now() - start
 }
 
