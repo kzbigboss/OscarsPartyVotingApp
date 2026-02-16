@@ -121,9 +121,63 @@ try {
   }
   await goToBallot(guestPages[0])
 
-  // === Phase 4 happens in next task ===
+  // === Phase 4: Host Announces Winners ===
+  metrics.startPhase('Winner announcements')
+  // Only announce a subset of categories to keep test time reasonable
+  const categoriesToAnnounce = Math.min(categoryCount, 5)
+  console.log(`[Phase 4] Host announcing winners for ${categoriesToAnnounce} categories...`)
 
-  console.log('\n[Phase 4] Not yet implemented.\n')
+  const { lockCategory, selectWinner } = await import('./helpers/host.js')
+  const { waitForWinnerOnCategory } = await import('./helpers/guest.js')
+
+  for (let catIdx = 0; catIdx < categoriesToAnnounce; catIdx++) {
+    // Host locks the category
+    await lockCategory(hostPage, catIdx)
+
+    // Host selects winner (first nominee)
+    const winnerName = await selectWinner(hostPage, catIdx)
+    console.log(`  Category ${catIdx}: winner = ${winnerName}`)
+
+    // Measure propagation to all guests
+    const propagationPromises = guestPages.map(async (page, guestIdx) => {
+      try {
+        const propMs = await waitForWinnerOnCategory(page, catIdx, 10000)
+        metrics.recordLatency('Propagation', propMs)
+        return propMs
+      } catch (err) {
+        console.error(`  [ERROR] Guest ${guestIdx + 1} did not see winner for category ${catIdx}`)
+        metrics.assert(`Guest ${guestIdx + 1} sees winner for category ${catIdx}`, false)
+        return null
+      }
+    })
+
+    const propResults = await Promise.all(propagationPromises)
+    const successCount = propResults.filter(r => r !== null).length
+    const avgMs = propResults.filter(r => r !== null).reduce((s, v) => s + v, 0) / successCount
+    console.log(`    ${successCount}/${config.numGuests} guests saw update (avg ${Math.round(avgMs)}ms)`)
+  }
+
+  // Final assertion: check scores are consistent
+  for (let guestIdx = 0; guestIdx < guestPages.length; guestIdx++) {
+    const score = await getScore(guestPages[guestIdx])
+    if (score) {
+      metrics.assert(
+        `Guest ${guestIdx + 1} score <= ${categoriesToAnnounce} announced`,
+        score.correct <= categoriesToAnnounce && score.total === categoriesToAnnounce
+      )
+    }
+  }
+
+  // Check leaderboard final state
+  const finalNames = await getLeaderboardNames(guestPages[0])
+  metrics.assert(
+    `Final leaderboard shows all ${expectedCount} participants`,
+    finalNames.length >= expectedCount
+  )
+  console.log(`  Final leaderboard: ${finalNames.length} participants`)
+
+  await goToBallot(guestPages[0])
+  metrics.endPhase()
 
   // === Reporting ===
   const allPassed = metrics.report()
