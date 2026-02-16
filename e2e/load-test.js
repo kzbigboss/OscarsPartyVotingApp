@@ -79,9 +79,51 @@ try {
   await goToBallot(guestPages[0])
   metrics.endPhase()
 
-  // === Phases 3-4 happen in next tasks ===
+  // === Phase 3: Voting ===
+  metrics.startPhase('Voting')
+  console.log(`[Phase 3] Guests voting across ${categoryCount} categories...`)
 
-  console.log('\n[Phases 3-4] Not yet implemented.\n')
+  for (let catIdx = 0; catIdx < categoryCount; catIdx++) {
+    const votePromises = guestPages.map(async (page, guestIdx) => {
+      try {
+        const result = await voteOnCategory(page, catIdx)
+        if (!result.skipped) {
+          metrics.recordLatency('Vote', result.latencyMs)
+        }
+        return result
+      } catch (err) {
+        const guestName = `Guest ${guestIdx + 1}`
+        console.error(`  [ERROR] ${guestName} failed voting on category ${catIdx}: ${err.message}`)
+        metrics.assert(`${guestName} votes on category ${catIdx}`, false)
+        return { skipped: true }
+      }
+    })
+
+    const voteResults = await Promise.all(votePromises)
+    const voted = voteResults.filter(r => !r.skipped).length
+    const catName = voteResults.find(r => r.categoryName)?.categoryName || `Category ${catIdx}`
+    if (voted > 0) {
+      console.log(`  ${catName}: ${voted}/${config.numGuests} guests voted`)
+    }
+  }
+
+  metrics.endPhase()
+
+  // Spot-check: first guest's You page should show votes
+  const { getYouPageVoteCount } = await import('./helpers/guest.js')
+  const youPageResult = await getYouPageVoteCount(guestPages[0])
+  if (youPageResult) {
+    metrics.assert(
+      `Guest 1 You page shows votes (${youPageResult.voted}/${youPageResult.total})`,
+      youPageResult.voted > 0
+    )
+    console.log(`  Guest 1 You page: ${youPageResult.voted}/${youPageResult.total} votes`)
+  }
+  await goToBallot(guestPages[0])
+
+  // === Phase 4 happens in next task ===
+
+  console.log('\n[Phase 4] Not yet implemented.\n')
 
   // === Reporting ===
   const allPassed = metrics.report()
