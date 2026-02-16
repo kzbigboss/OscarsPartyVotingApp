@@ -10,12 +10,13 @@ const { values } = parseArgs({
     url: { type: 'string' },
     'host-pin': { type: 'string' },
     guests: { type: 'string', default: '10' },
+    categories: { type: 'string', default: '5' },
     headed: { type: 'boolean', default: false },
   },
 })
 
 if (!values.url || !values['host-pin']) {
-  console.error('Usage: node e2e/load-test.js --url <partyUrl> --host-pin <pin> [--guests N] [--headed]')
+  console.error('Usage: node e2e/load-test.js --url <partyUrl> --host-pin <pin> [--guests N] [--categories N] [--headed]')
   process.exit(1)
 }
 
@@ -23,6 +24,7 @@ const config = {
   url: values.url,
   hostPin: values['host-pin'],
   numGuests: parseInt(values.guests, 10),
+  categoriesToAnnounce: parseInt(values.categories, 10),
   headed: values.headed,
 }
 
@@ -41,7 +43,7 @@ async function screenshotOnError(page, label) {
 
 const metrics = new Metrics()
 
-console.log(`\nLoad test: ${config.numGuests} guests against ${config.url}\n`)
+console.log(`\nLoad test: ${config.numGuests} guests, ${config.categoriesToAnnounce} winners against ${config.url}\n`)
 
 const browser = await chromium.launch({ headless: !config.headed })
 
@@ -138,8 +140,7 @@ try {
 
   // === Phase 4: Host Announces Winners ===
   metrics.startPhase('Winner announcements')
-  // Only announce a subset of categories to keep test time reasonable
-  const categoriesToAnnounce = Math.min(categoryCount, 5)
+  const categoriesToAnnounce = Math.min(config.categoriesToAnnounce, categoryCount)
   console.log(`[Phase 4] Host announcing winners for ${categoriesToAnnounce} categories...`)
 
   const { lockCategory, selectWinner } = await import('./helpers/host.js')
