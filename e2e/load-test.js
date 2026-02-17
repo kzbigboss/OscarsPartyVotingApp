@@ -1,7 +1,6 @@
 import { chromium } from 'playwright'
 import { parseArgs } from 'node:util'
 import { mkdir } from 'node:fs/promises'
-import { createInterface } from 'node:readline'
 import { Metrics } from './helpers/metrics.js'
 import { joinAsHost, getCategoryCount } from './helpers/host.js'
 import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore, waitForAnnouncedCount } from './helpers/guest.js'
@@ -13,12 +12,11 @@ const { values } = parseArgs({
     guests: { type: 'string', default: '10' },
     categories: { type: 'string', default: '5' },
     headed: { type: 'boolean', default: false },
-    'pause-for-winners': { type: 'boolean', default: false },
   },
 })
 
 if (!values.url || !values['host-pin']) {
-  console.error('Usage: node e2e/load-test.js --url <partyUrl> --host-pin <pin> [--guests N] [--categories N] [--headed] [--pause-for-winners]')
+  console.error('Usage: node e2e/load-test.js --url <partyUrl> --host-pin <pin> [--guests N] [--categories N] [--headed]')
   process.exit(1)
 }
 
@@ -28,7 +26,6 @@ const config = {
   numGuests: parseInt(values.guests, 10),
   categoriesToAnnounce: parseInt(values.categories, 10),
   headed: values.headed,
-  pauseForWinners: values['pause-for-winners'],
 }
 
 const SCREENSHOT_DIR = new URL('./screenshots', import.meta.url).pathname
@@ -44,22 +41,9 @@ async function screenshotOnError(page, label) {
   }
 }
 
-function waitForEnter(prompt) {
-  return new Promise((resolve) => {
-    const rl = createInterface({ input: process.stdin, output: process.stdout })
-    rl.question(prompt, () => {
-      rl.close()
-      resolve()
-    })
-  })
-}
-
 const metrics = new Metrics()
 
 console.log(`\nLoad test: ${config.numGuests} guests against ${config.url}`)
-if (config.pauseForWinners) {
-  console.log(`  Interactive mode: will pause for you to announce ${config.categoriesToAnnounce} winners`)
-}
 console.log()
 
 const browser = await chromium.launch({ headless: !config.headed })
