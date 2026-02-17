@@ -31,3 +31,6 @@ service-account-key.json
 
 # Git worktrees
 .worktrees
+
+# Playwright screenshots
+e2e/screenshots/

@@ -14,6 +14,9 @@ npx vitest run src/firebase/__tests__/parties.test.js  # Run a single test file
 mise install         # Install pinned Node 22.22.0 + firebase-tools
 mise exec -- firebase deploy  # Deploy to Firebase Hosting
 mise exec -- firebase deploy --only firestore:rules  # Deploy Firestore security rules only
+mise run setup-playwright   # Install Playwright Chromium (one-time after npm install)
+npm run e2e:load -- --url <partyUrl> --host-pin <pin> [--guests N] [--headed]  # Run Playwright load test
+npm run e2e:load -- --url <partyUrl> --host-pin <pin> --pause-for-winners [--categories N] [--headed]  # Interactive: pauses for you to select winners, then verifies propagation
 ```
 
 ## Architecture

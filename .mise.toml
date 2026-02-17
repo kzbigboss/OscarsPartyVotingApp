@@ -5,3 +5,7 @@ node = "22.22.0"
 [env]
 # Ensure node_modules/.bin is on PATH for locally installed packages
 _.path = ["node_modules/.bin"]
+
+[tasks.setup-playwright]
+description = "Install Playwright browser binaries (Chromium)"
+run = "npx playwright install chromium"
