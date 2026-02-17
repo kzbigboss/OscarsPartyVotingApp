@@ -3,6 +3,7 @@ import { useParty } from '../hooks/useParty'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { hashPin } from '../firebase/parties'
+import { signInAnonymouslyIfNeeded } from '../firebase/auth'
 import './HostModeToggle.css'
 
 export default function HostModeToggle({ partyCode, onActivate }) {
@@ -16,6 +17,9 @@ export default function HostModeToggle({ partyCode, onActivate }) {
     const hashedInput = await hashPin(pin, partyCode)
     if (hashedInput === party?.hostPinHash) {
       try {
+        // Ensure delegate has Firebase Auth identity for Firestore security rules
+        await signInAnonymouslyIfNeeded()
+
         const stored = JSON.parse(localStorage.getItem(`guest_${partyCode}`) || '{}')
         const guestRef = doc(db, 'parties', partyCode, 'guests', stored.guestId)
         await updateDoc(guestRef, { isHost: true })
