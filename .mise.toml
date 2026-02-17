@@ -9,3 +9,11 @@ _.path = ["node_modules/.bin"]
 [tasks.setup-playwright]
 description = "Install Playwright browser binaries (Chromium)"
 run = "npx playwright install chromium"
+
+[tasks."maintenance:on"]
+description = "Enable maintenance mode in Firestore"
+run = "node scripts/maintenance.js on"
+
+[tasks."maintenance:off"]
+description = "Disable maintenance mode in Firestore"
+run = "node scripts/maintenance.js off"
