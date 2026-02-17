@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Pre-commit hook: scans staged files for sensitive data before allowing commits.
-# Install: npm run prepare (or manually: cp scripts/pre-commit .git/hooks/pre-commit)
+# Install: npm run prepare (works in both regular repos and worktrees)
 #
 
 set -euo pipefail
