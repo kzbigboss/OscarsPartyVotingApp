@@ -2,12 +2,13 @@ rules_version = '2';
 
 // Oscars Party Voting App — Firestore Security Rules
 //
-// Auth-based rules (Issue #4). Firebase Auth is now integrated, so we
-// enforce server-side authorization for privileged operations:
+// Auth-based rules (Issue #4, updated by Issue #43).
+// Firebase Auth is integrated for privileged operations:
 //
 //   - Party creation: requires authenticated user; createdBy must match uid
 //   - Party updates: only the party creator (createdBy == auth.uid)
-//   - Category writes (lock/unlock/selectWinner): only the party creator
+//   - Category writes (lock/unlock/selectWinner): any authenticated user
+//     (host delegates sign in anonymously after PIN validation on the client)
 //   - Guest create/update: open (anyone can join and scores update from any client)
 //   - Votes create/update: open (anyone can vote without auth)
 //   - All reads: open (guests need to see everything)
@@ -33,10 +34,10 @@ service cloud.firestore {
         // Anyone can read categories
         allow read: if true;
 
-        // Only the party creator can write categories
+        // Any authenticated user can write categories
         // (lock/unlock, selectWinner, seeding)
-        allow write: if request.auth != null
-                     && request.auth.uid == get(/databases/$(database)/documents/parties/$(partyCode)).data.createdBy;
+        // Host delegates authenticate anonymously after PIN validation
+        allow write: if request.auth != null;
       }
 
       match /guests/{guestId} {

@@ -20,8 +20,13 @@ vi.mock('../../firebase/parties', () => ({
   hashPin: vi.fn((pin) => Promise.resolve(pin === '1234' ? 'mock-hash' : 'wrong-hash')),
 }))
 
+vi.mock('../../firebase/auth', () => ({
+  signInAnonymouslyIfNeeded: vi.fn(() => Promise.resolve({ uid: 'anon-test-uid' })),
+}))
+
 import HostModeToggle from '../HostModeToggle'
 import { updateDoc } from 'firebase/firestore'
+import { signInAnonymouslyIfNeeded } from '../../firebase/auth'
 
 describe('HostModeToggle', () => {
   const mockOnActivate = vi.fn()
@@ -115,6 +120,50 @@ describe('HostModeToggle', () => {
     // Verify localStorage was not updated with isHost
     const stored = JSON.parse(localStorage.getItem('guest_ABC123'))
     expect(stored.isHost).toBeUndefined()
+
+    consoleSpy.mockRestore()
+  })
+
+  it('calls signInAnonymouslyIfNeeded on correct PIN before updating Firestore', async () => {
+    render(<HostModeToggle partyCode="ABC123" onActivate={mockOnActivate} />)
+    fireEvent.click(screen.getByText('Host Mode'))
+    fireEvent.change(screen.getByPlaceholderText('Enter host PIN'), { target: { value: '1234' } })
+    fireEvent.submit(screen.getByText('Activate').closest('form'))
+
+    await waitFor(() => {
+      expect(signInAnonymouslyIfNeeded).toHaveBeenCalled()
+      expect(updateDoc).toHaveBeenCalledWith('mock-doc-ref', { isHost: true })
+      expect(mockOnActivate).toHaveBeenCalled()
+    })
+  })
+
+  it('does not call signInAnonymouslyIfNeeded on incorrect PIN', async () => {
+    render(<HostModeToggle partyCode="ABC123" onActivate={mockOnActivate} />)
+    fireEvent.click(screen.getByText('Host Mode'))
+    fireEvent.change(screen.getByPlaceholderText('Enter host PIN'), { target: { value: '9999' } })
+    fireEvent.submit(screen.getByText('Activate').closest('form'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Incorrect PIN')).toBeInTheDocument()
+    })
+    expect(signInAnonymouslyIfNeeded).not.toHaveBeenCalled()
+  })
+
+  it('shows error message when anonymous sign-in fails', async () => {
+    signInAnonymouslyIfNeeded.mockRejectedValueOnce(new Error('Anonymous auth failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<HostModeToggle partyCode="ABC123" onActivate={mockOnActivate} />)
+    fireEvent.click(screen.getByText('Host Mode'))
+    fireEvent.change(screen.getByPlaceholderText('Enter host PIN'), { target: { value: '1234' } })
+    fireEvent.submit(screen.getByText('Activate').closest('form'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not activate host mode. Please try again.')).toBeInTheDocument()
+    })
+    expect(mockOnActivate).not.toHaveBeenCalled()
+    expect(updateDoc).not.toHaveBeenCalled()
+    expect(consoleSpy).toHaveBeenCalledWith('Failed to activate host mode:', expect.any(Error))
 
     consoleSpy.mockRestore()
   })
