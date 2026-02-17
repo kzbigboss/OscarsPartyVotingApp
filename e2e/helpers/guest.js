@@ -92,6 +92,35 @@ export async function getYouPageVoteCount(page) {
 }
 
 /**
+ * Navigate to the You page and return detailed results per category.
+ * Returns array of { category, pick, isAnnounced, isCorrect, isWrong }.
+ */
+export async function getYouPageResults(page) {
+  await page.click('.nav-bar a:has-text("You")')
+  await page.waitForSelector('.vote-summary', { timeout: 10000 })
+
+  const rows = page.locator('.vote-row')
+  const count = await rows.count()
+  const results = []
+
+  for (let i = 0; i < count; i++) {
+    const row = rows.nth(i)
+    const category = await row.locator('.vote-category').innerText()
+    const pick = await row.locator('.vote-pick').innerText()
+    const classes = (await row.getAttribute('class')) || ''
+    results.push({
+      category,
+      pick,
+      isAnnounced: classes.includes('correct') || classes.includes('wrong'),
+      isCorrect: classes.includes('correct'),
+      isWrong: classes.includes('wrong'),
+    })
+  }
+
+  return results
+}
+
+/**
  * Navigate back to the ballot page.
  */
 export async function goToBallot(page) {
