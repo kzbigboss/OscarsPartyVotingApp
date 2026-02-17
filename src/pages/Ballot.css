@@ -45,6 +45,10 @@
   font-size: 14px;
 }
 
+.copy-invite-btn {
+  transition: background-color 0.2s ease;
+}
+
 .error-toast {
   position: fixed;
   bottom: 90px;

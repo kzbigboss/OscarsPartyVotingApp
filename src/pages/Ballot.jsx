@@ -22,11 +22,14 @@ export default function Ballot() {
   const [hostMode, setHostMode] = useState(isHost)
   const [expandedIds, setExpandedIds] = useState(new Set())
   const [error, setError] = useState(null)
+  const [copied, setCopied] = useState(false)
   const errorTimerRef = useRef(null)
+  const copiedTimerRef = useRef(null)
 
   useEffect(() => {
     return () => {
       if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current)
     }
   }, [])
 
@@ -34,6 +37,19 @@ export default function Ballot() {
     setError(message)
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
     errorTimerRef.current = setTimeout(() => setError(null), 3000)
+  }
+
+  async function handleCopyInviteLink() {
+    const inviteUrl = `${window.location.origin}/${partyCode}`
+    try {
+      await navigator.clipboard.writeText(inviteUrl)
+      setCopied(true)
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current)
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy invite link:', err)
+      showError('Could not copy link. Please try again.')
+    }
   }
 
   const myVotes = {}
@@ -146,6 +162,13 @@ export default function Ballot() {
       <div className="floating-menu">
         <button className="btn-small" onClick={expandAll}>Expand All</button>
         <button className="btn-small" onClick={collapseAll}>Collapse All</button>
+        <button
+          className="btn-small copy-invite-btn"
+          onClick={handleCopyInviteLink}
+          aria-label="Copy invite link to clipboard"
+        >
+          {copied ? 'Copied!' : 'Copy Invite Link'}
+        </button>
         {hostMode && (
           <>
             <button className="btn-small" onClick={handleLockAll}>Lock All</button>
