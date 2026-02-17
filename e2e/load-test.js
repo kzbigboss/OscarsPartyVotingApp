@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util'
 import { mkdir } from 'node:fs/promises'
 import { Metrics } from './helpers/metrics.js'
 import { joinAsHost, getCategoryCount, lockCategory, selectWinner } from './helpers/host.js'
-import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore, waitForAnnouncedCount } from './helpers/guest.js'
+import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore, waitForAnnouncedCount, getYouPageResults } from './helpers/guest.js'
 
 const { values } = parseArgs({
   options: {
@@ -127,18 +127,6 @@ try {
 
   metrics.endPhase()
 
-  // Spot-check: first guest's You page should show votes
-  const { getYouPageVoteCount } = await import('./helpers/guest.js')
-  const youPageResult = await getYouPageVoteCount(guestPages[0])
-  if (youPageResult) {
-    metrics.assert(
-      `Guest 1 You page shows votes (${youPageResult.voted}/${youPageResult.total})`,
-      youPageResult.voted > 0
-    )
-    console.log(`  Guest 1 You page: ${youPageResult.voted}/${youPageResult.total} votes`)
-  }
-  await goToBallot(guestPages[0])
-
   // === Phase 4: Winner Announcement ===
   const categoriesToAnnounce = Math.min(config.categoriesToAnnounce, categoryCount)
   metrics.startPhase('Winner announcement')
@@ -162,6 +150,61 @@ try {
 
   const announcedCount = winnersByCategory.length
   console.log(`  ${announcedCount}/${categoriesToAnnounce} categories announced`)
+  metrics.endPhase()
+
+  // === Phase 5: Guest Result Verification ===
+  metrics.startPhase('Result verification')
+  console.log(`[Phase 5] Verifying ${config.numGuests} guests see ${announcedCount} results...`)
+
+  for (let guestIdx = 0; guestIdx < guestPages.length; guestIdx++) {
+    const guestLabel = `Guest ${guestIdx + 1}`
+    const page = guestPages[guestIdx]
+
+    try {
+      // 5a: Ballot — check announced categories propagated
+      await goToBallot(page)
+      const propMs = await waitForAnnouncedCount(page, announcedCount, 15000)
+      metrics.recordLatency('Propagation', propMs)
+      metrics.assert(`${guestLabel} sees ${announcedCount} announced categories`, true)
+
+      // 5b: Score indicator
+      const score = await getScore(page)
+      if (score) {
+        metrics.assert(
+          `${guestLabel} score shows ${announcedCount} total announced`,
+          score.total === announcedCount
+        )
+        console.log(`  ${guestLabel}: score ${score.correct}/${score.total}, propagation ${propMs}ms`)
+      } else {
+        metrics.assert(`${guestLabel} score indicator is readable`, false)
+        console.log(`  ${guestLabel}: score indicator not found or format changed`)
+      }
+
+      // 5c: You page — check correct/wrong marks
+      const youResults = await getYouPageResults(page)
+      const announcedResults = youResults.filter(r => r.isAnnounced)
+      metrics.assert(
+        `${guestLabel} You page shows ${announcedCount} announced results`,
+        announcedResults.length === announcedCount
+      )
+
+      const correctCount = announcedResults.filter(r => r.isCorrect).length
+      const wrongCount = announcedResults.filter(r => r.isWrong).length
+      metrics.assert(
+        `${guestLabel} correct + wrong equals announced count`,
+        correctCount + wrongCount === announcedResults.length
+      )
+      console.log(`  ${guestLabel} You page: ${correctCount} correct, ${wrongCount} wrong out of ${announcedResults.length} announced`)
+
+      // Navigate back to ballot for leaderboard check
+      await goToBallot(page)
+    } catch (err) {
+      console.error(`  [ERROR] ${guestLabel} verification failed: ${err.message}`)
+      metrics.assert(`${guestLabel} result verification`, false)
+      await screenshotOnError(page, `verification-${guestLabel.replace(/\s+/g, '')}`)
+    }
+  }
+
   metrics.endPhase()
 
   // Check leaderboard final state
