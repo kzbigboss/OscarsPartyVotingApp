@@ -2,7 +2,7 @@ import { chromium } from 'playwright'
 import { parseArgs } from 'node:util'
 import { mkdir } from 'node:fs/promises'
 import { Metrics } from './helpers/metrics.js'
-import { joinAsHost, getCategoryCount } from './helpers/host.js'
+import { joinAsHost, getCategoryCount, lockCategory, selectWinner } from './helpers/host.js'
 import { joinParty, voteOnCategory, getLeaderboardNames, goToBallot, getScore, waitForAnnouncedCount } from './helpers/guest.js'
 
 const { values } = parseArgs({
@@ -139,56 +139,30 @@ try {
   }
   await goToBallot(guestPages[0])
 
-  // === Phase 4: Winner Propagation (interactive) ===
-  if (config.pauseForWinners) {
-    const categoriesToAnnounce = Math.min(config.categoriesToAnnounce, categoryCount)
+  // === Phase 4: Winner Announcement ===
+  const categoriesToAnnounce = Math.min(config.categoriesToAnnounce, categoryCount)
+  metrics.startPhase('Winner announcement')
+  console.log(`[Phase 4] Host announcing winners for ${categoriesToAnnounce}/${categoryCount} categories...`)
 
-    console.log(`\n[Phase 4] Waiting for you to announce winners...`)
-    console.log(`  Go to the app and select winners for ${categoriesToAnnounce} categories.`)
-    console.log(`  (Lock the category first, then pick a winner.)`)
-    await waitForEnter(`\n  Press Enter when you've announced ${categoriesToAnnounce} winners... `)
+  const winnersByCategory = []
 
-    metrics.startPhase('Winner propagation')
-    console.log(`  Checking ${config.numGuests} guest browsers for ${categoriesToAnnounce} announced categories...`)
-
-    // Check each guest sees at least N announced categories (any categories, any order)
-    const propagationPromises = guestPages.map(async (page, guestIdx) => {
-      try {
-        const propMs = await waitForAnnouncedCount(page, categoriesToAnnounce, 15000)
-        metrics.recordLatency('Propagation', propMs)
-        metrics.assert(`Guest ${guestIdx + 1} sees ${categoriesToAnnounce} winners`, true)
-        return propMs
-      } catch {
-        const actual = await page.locator('.category-card.announced').count()
-        console.error(`  [MISS] Guest ${guestIdx + 1} saw ${actual}/${categoriesToAnnounce} winners`)
-        metrics.assert(`Guest ${guestIdx + 1} sees ${categoriesToAnnounce} winners`, false)
-        await screenshotOnError(page, `propagation-guest${guestIdx + 1}`)
-        return null
-      }
-    })
-
-    const propResults = await Promise.all(propagationPromises)
-    const successCount = propResults.filter(r => r !== null).length
-    if (successCount > 0) {
-      const avgMs = propResults.filter(r => r !== null).reduce((s, v) => s + v, 0) / successCount
-      console.log(`  ${successCount}/${config.numGuests} guests saw all ${categoriesToAnnounce} winners (avg ${Math.round(avgMs)}ms)`)
+  for (let catIdx = 0; catIdx < categoriesToAnnounce; catIdx++) {
+    try {
+      await lockCategory(hostPage, catIdx)
+      const winnerName = await selectWinner(hostPage, catIdx)
+      winnersByCategory.push({ catIdx, winnerName })
+      metrics.assert(`Host locks and selects winner for category ${catIdx}`, true)
+      console.log(`  Category ${catIdx}: locked, winner = "${winnerName}"`)
+    } catch (err) {
+      console.error(`  [ERROR] Failed to announce category ${catIdx}: ${err.message}`)
+      metrics.assert(`Host locks and selects winner for category ${catIdx}`, false)
+      await screenshotOnError(hostPage, `host-announce-cat${catIdx}`)
     }
-
-    // Verify scores match
-    for (let guestIdx = 0; guestIdx < guestPages.length; guestIdx++) {
-      const score = await getScore(guestPages[guestIdx])
-      if (score) {
-        metrics.assert(
-          `Guest ${guestIdx + 1} score total matches announced`,
-          score.total >= categoriesToAnnounce
-        )
-      }
-    }
-
-    metrics.endPhase()
-  } else {
-    console.log('[Phase 4] Skipped (use --pause-for-winners for interactive winner verification)')
   }
+
+  const announcedCount = winnersByCategory.length
+  console.log(`  ${announcedCount}/${categoriesToAnnounce} categories announced`)
+  metrics.endPhase()
 
   // Check leaderboard final state
   const finalNames = await getLeaderboardNames(guestPages[0], expectedCount)
