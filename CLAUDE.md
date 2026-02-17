@@ -15,8 +15,7 @@ mise install         # Install pinned Node 22.22.0 + firebase-tools
 mise exec -- firebase deploy  # Deploy to Firebase Hosting
 mise exec -- firebase deploy --only firestore:rules  # Deploy Firestore security rules only
 mise run setup-playwright   # Install Playwright Chromium (one-time after npm install)
-npm run e2e:load -- --url <partyUrl> --host-pin <pin> [--guests N] [--headed]  # Run Playwright load test
-npm run e2e:load -- --url <partyUrl> --host-pin <pin> --pause-for-winners [--categories N] [--headed]  # Interactive: pauses for you to select winners, then verifies propagation
+npm run e2e:load -- --url <partyUrl> --host-pin <pin> [--guests N] [--categories N] [--headed]  # Run Playwright load test (host bot auto-selects winners)
 ```
 
 ## Architecture
@@ -73,3 +72,15 @@ Tests use Vitest with jsdom. Firebase modules are mocked with `vi.mock('firebase
 Firebase config lives in `.env.local` (git-ignored) using `VITE_FIREBASE_*` variable names, accessed via `import.meta.env.VITE_*` in `src/firebase/config.js`.
 
 Party codes are 6-char alphanumeric strings generated from a charset that excludes ambiguous characters (no 0/O/1/I/L).
+
+## Agent Workflow for GitHub Issues
+
+When assigned a GitHub issue, agents must follow this lifecycle:
+
+1. **Claim the issue** — Comment on the GitHub issue that you're starting work (e.g., `gh issue comment <number> --body "Starting work on this."`).
+2. **Work in an isolated worktree** — Create a git worktree to avoid conflicts with other concurrent agents. Never work directly on `main`.
+3. **Post incremental updates** — As work progresses, comment on the GitHub issue with status updates so others can monitor progress (e.g., what's done, what's left, any blockers).
+4. **Run tests before finishing** — Ensure `npx vitest run` and `npm run lint` pass before considering work complete.
+5. **Publish a PR** — Once tests pass, push the branch and create a pull request linked to the issue.
+6. **Merge after checks pass** — Wait for CI checks to succeed, then merge. If checks fail, fix the issues and push again.
+7. **Post a summary** — After merging, comment on the GitHub issue with an overall summary of what was done, then close the issue if appropriate.
