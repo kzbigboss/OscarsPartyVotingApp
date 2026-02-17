@@ -27,6 +27,12 @@ export default defineConfig([
     },
   },
   {
+    files: ['e2e/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
     files: ['**/__tests__/**', '**/*.test.{js,jsx}'],
     languageOptions: {
       globals: {
