@@ -20,7 +20,7 @@ function AppContent() {
     return <div className="loading-screen">Loading…</div>
   }
 
-  if (maintenance?.enabled) {
+  if (maintenance?.enabled && !import.meta.env.DEV) {
     return <MaintenancePage message={maintenance.message} />
   }
 

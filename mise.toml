@@ -1,0 +1,122 @@
+[tools]
+node = "22.22.0"
+"npm:firebase-tools" = "latest"
+
+[env]
+# Ensure node_modules/.bin is on PATH for locally installed packages
+_.path = ["node_modules/.bin"]
+
+[tasks.setup]
+description = "Set up the project for local development"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Installing tools (Node, firebase-tools)..."
+mise install
+
+echo ""
+echo "==> Installing npm dependencies..."
+npm install
+
+if [ -f .env.local ]; then
+  echo ""
+  echo "==> .env.local already exists, skipping."
+else
+  echo ""
+  echo "==> Setting up .env.local with Firebase config..."
+
+  # Ensure the user is logged into Firebase
+  if ! firebase login:list 2>&1 | grep -q "Logged in"; then
+    echo "    ⚠ Not logged into Firebase. Run 'firebase login' first, then re-run 'mise run setup'."
+    exit 1
+  fi
+
+  # Fetch the web app SDK config
+  echo "    Fetching SDK config from Firebase..."
+  SDK_JSON=$(firebase apps:sdkconfig web --json 2>/dev/null) || true
+
+  if echo "$SDK_JSON" | node -e "
+    const input = require('fs').readFileSync('/dev/stdin', 'utf8');
+    const parsed = JSON.parse(input);
+    const c = parsed.result.sdkConfig;
+    if (!c.apiKey) process.exit(1);
+    const lines = [
+      'VITE_FIREBASE_API_KEY=' + c.apiKey,
+      'VITE_FIREBASE_AUTH_DOMAIN=' + c.authDomain,
+      'VITE_FIREBASE_PROJECT_ID=' + c.projectId,
+      'VITE_FIREBASE_STORAGE_BUCKET=' + c.storageBucket,
+      'VITE_FIREBASE_MESSAGING_SENDER_ID=' + c.messagingSenderId,
+      'VITE_FIREBASE_APP_ID=' + c.appId,
+    ];
+    require('fs').writeFileSync('.env.local', lines.join('\\n') + '\\n');
+  " 2>/dev/null; then
+    echo "    ✓ .env.local populated from Firebase project config."
+  else
+    echo "    ⚠ Could not fetch Firebase config automatically."
+    cp .env.example .env.local
+    echo "    Copied .env.example → .env.local — fill in the values manually."
+  fi
+
+  # Look up the logged-in user's UID for the allowed host setting
+  LOGGED_IN_EMAIL=$(firebase login:list 2>&1 | grep -oE '[^ ]+@[^ ]+')
+  if [ -n "$LOGGED_IN_EMAIL" ]; then
+    echo "    Looking up host UID for $LOGGED_IN_EMAIL..."
+    USERS_FILE=$(mktemp)
+    if firebase auth:export "$USERS_FILE" --format=json 2>/dev/null; then
+      HOST_UID=$(node -e "
+        const data = JSON.parse(require('fs').readFileSync('$USERS_FILE', 'utf8'));
+        const user = data.users.find(u => u.email === '$LOGGED_IN_EMAIL');
+        if (user) process.stdout.write(user.localId);
+      " 2>/dev/null)
+      rm -f "$USERS_FILE"
+      if [ -n "$HOST_UID" ]; then
+        echo "VITE_ALLOWED_HOST_UID=$HOST_UID" >> .env.local
+        echo "    ✓ VITE_ALLOWED_HOST_UID set to $HOST_UID"
+      else
+        echo "    ⚠ Could not find UID for $LOGGED_IN_EMAIL — add VITE_ALLOWED_HOST_UID to .env.local manually."
+      fi
+    else
+      rm -f "$USERS_FILE"
+      echo "    ⚠ Could not export auth users — add VITE_ALLOWED_HOST_UID to .env.local manually."
+    fi
+  fi
+fi
+
+echo ""
+echo "==> Setup complete!"
+echo ""
+echo "Next steps:"
+echo "  1. Run 'npm run dev' to start the dev server"
+echo "  2. (Optional) Run 'mise run setup-playwright' to install Chromium for e2e tests"
+"""
+
+[tasks.dev]
+description = "Start the Vite dev server"
+run = "npm run dev"
+
+[tasks.deploy]
+description = "Build and deploy to Firebase Hosting + Firestore rules"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Building for production..."
+npm run build
+
+echo ""
+echo "==> Deploying to Firebase..."
+firebase deploy
+"""
+
+[tasks.setup-playwright]
+description = "Install Playwright browser binaries (Chromium)"
+run = "npx playwright install chromium"
+
+[tasks."maintenance:on"]
+description = "Enable maintenance mode in Firestore"
+run = "node scripts/maintenance.js on"
+
+[tasks."maintenance:off"]
+description = "Disable maintenance mode in Firestore"
+run = "node scripts/maintenance.js off"
