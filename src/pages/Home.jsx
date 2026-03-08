@@ -66,6 +66,14 @@ export default function Home() {
         <button onClick={() => navigate(`/${createdCode}`)}>
           Join Your Party
         </button>
+        <a
+          className="observer-link-btn"
+          href={`/${createdCode}/observe`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open Observer Leaderboard
+        </a>
       </div>
     )
   }

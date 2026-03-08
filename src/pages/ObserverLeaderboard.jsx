@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom'
+import { QRCodeSVG } from 'qrcode.react'
 import { useParty } from '../hooks/useParty'
 import { useGuests } from '../hooks/useGuests'
 import { useCategories } from '../hooks/useCategories'
@@ -36,24 +37,32 @@ export default function ObserverLeaderboard() {
 
   return (
     <div className="observer-leaderboard">
-      <h1>{party?.name}</h1>
-      <p className="subtitle">{totalAnnounced} of {totalCategories} categories announced</p>
-      <div className="rankings-header">
-        <span className="rank-col"></span>
-        <span className="name-col"></span>
-        <span className="voted-col">Voted</span>
-        <span className="score-col">Score</span>
+      <div className="observer-main">
+        <div className="observer-left">
+          <h1>{party?.name}</h1>
+          <p className="subtitle">{totalAnnounced} of {totalCategories} categories announced</p>
+          <div className="rankings-header">
+            <span className="rank-col"></span>
+            <span className="name-col"></span>
+            <span className="voted-col">Voted</span>
+            <span className="score-col">Score</span>
+          </div>
+          <ol className="rankings">
+            {ranked.map((guest, i) => (
+              <li key={guest.id} className="rank-row">
+                <span className="rank">#{i + 1}</span>
+                <span className="guest-name">{guest.displayName} ({guest.id})</span>
+                <span className="votes-cast">{guest.voted}/{totalCategories}</span>
+                <span className="score">{guest.correct}/{totalAnnounced}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="qr-section">
+          <QRCodeSVG value={`${window.location.origin}/${partyCode}/join`} size={160} />
+          <p className="qr-label">Scan to join</p>
+        </div>
       </div>
-      <ol className="rankings">
-        {ranked.map((guest, i) => (
-          <li key={guest.id} className="rank-row">
-            <span className="rank">#{i + 1}</span>
-            <span className="guest-name">{guest.displayName} ({guest.id})</span>
-            <span className="votes-cast">{guest.voted}/{totalCategories}</span>
-            <span className="score">{guest.correct}/{totalAnnounced}</span>
-          </li>
-        ))}
-      </ol>
     </div>
   )
 }
