@@ -10,12 +10,13 @@ disable-model-invocation: true
 
 Chain issue triage, user selection, model assignment, and parallel agent dispatch into a single workflow. This skill owns the glue between existing skills and agent execution — it never implements code itself.
 
-**Announce at start:** "I'm using the work-session skill to triage issues, assign models, and dispatch agents."
+**Announce at start:** "I'm using the work-session skill to triage issues and dispatch agents."
 
 **Composed skills:**
 
 - `issue-triage` — ranks open GitHub issues by priority, staleness, and independence
 - `scope-work` — creates change maps for individual issues (run by agents, not by this skill)
+- CLAUDE.md § Agent Workflow — agent lifecycle (claim, implement, verify, PR, summarize)
 
 ## Critical Rules
 
@@ -69,6 +70,8 @@ Using the file-overlap data retained from the triage step (Step 1), evaluate whe
 If dependent issues are detected, warn the user:
 
 > Issues #X and #Y share files ([list files]). Running them in parallel may cause merge conflicts. Consider working them sequentially or picking only one.
+
+If triage could not determine file overlap for an issue (e.g., "Needs verification" staleness), treat it as independent but note the uncertainty in the checkpoint.
 
 Maximize parallel agents for all independent issues.
 
@@ -141,7 +144,13 @@ Follow these steps in order:
 7. **Comment summary** — Comment on the GitHub issue with a summary of what was done, linking to the PR.
 ```
 
-After dispatching all agents, this skill is complete. Do not wait for agents to finish or monitor their progress.
+After dispatching all agents, this skill is complete. Agents are fully autonomous from this point. Monitor progress via:
+
+```bash
+gh pr list --repo kzbigboss/OscarsPartyVotingApp
+```
+
+Or check individual issue comments for agent status updates.
 
 ## Model Routing Reference
 
@@ -160,4 +169,4 @@ After dispatching all agents, this skill is complete. Do not wait for agents to 
 | Dispatching dependent issues in parallel without warning | Check file overlap from triage data. Warn the user about shared files. |
 | Running scope-work yourself instead of delegating to agents | Agents run scope-work as their first step. This skill never invokes scope-work directly. |
 | Skipping the dispatch checkpoint | Always present the dispatch table and wait for explicit user approval before firing agents. |
-| Using `markkazzaz/` or other prefix in branch names | Branch names use `ISSUE-<number>/<short-slug>` format. No user prefix. |
+| Adding user prefixes to branch names (e.g., `markkazzaz/`) | This repo uses `ISSUE-<number>/<short-slug>` format. No user prefix needed (repo is user-owned, not org-owned). |
