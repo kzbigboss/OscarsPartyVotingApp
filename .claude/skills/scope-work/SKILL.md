@@ -89,7 +89,25 @@ When there are meaningful design choices, describe 2-3 approaches with trade-off
 
 If the implementation is straightforward with no real design choices, state that and skip the approaches section.
 
-## Step 6: Create the GitHub Issue
+## Step 6: Recommend a Claude Model
+
+Based on the change map, success criteria, and overall complexity, recommend which Claude model should execute this issue. The recommendation must appear in the issue body as a standalone line in the format `model: <name>` so that dispatching agents can parse it.
+
+**Selection guidelines:**
+
+| Model | When to use |
+|-------|-------------|
+| `haiku` | Routine, mechanical changes — renaming, simple CRUD, config tweaks, copy updates, single-file edits with clear instructions. Low ambiguity, no design decisions. |
+| `sonnet` | Standard features and bugfixes — multi-file changes across 2-3 layers, straightforward testing, minor design choices. Most issues land here. |
+| `opus` | Complex or high-stakes work — cross-cutting architectural changes, subtle correctness requirements, security-sensitive code, ambiguous specs that require judgment, or anything touching 4+ layers with intertwined logic. |
+
+Factors to weigh:
+- **Number of affected layers** — more layers = higher model
+- **Ambiguity in requirements** — clear spec → lower model; judgment calls → higher model
+- **Risk of subtle bugs** — data integrity, security, concurrency → higher model
+- **Design decisions required** — no choices → lower model; meaningful trade-offs → higher model
+
+## Step 7: Create the GitHub Issue
 
 Use `gh issue create` to create the issue with the following structure:
 
@@ -121,6 +139,12 @@ Use `gh issue create` to create the issue with the following structure:
 [Description with trade-offs]
 
 **Recommended:** [Which and why]
+
+## Model
+
+model: [opus|sonnet|haiku]
+
+_[1 sentence justification for the model choice]_
 
 ## Context
 
