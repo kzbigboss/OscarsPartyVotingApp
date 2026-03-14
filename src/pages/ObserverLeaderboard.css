@@ -1,46 +1,72 @@
 .observer-leaderboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
   height: 100vh;
   overflow: hidden;
-  padding: var(--spacing-md);
+  padding: calc(48px * var(--scale, 1)) calc(64px * var(--scale, 1)) calc(40px * var(--scale, 1));
   box-sizing: border-box;
-}
-
-.observer-main {
+  background: #121212;
+  color: #f0f0f0;
   display: flex;
-  height: 100%;
-  gap: var(--spacing-lg);
+  flex-direction: column;
+  gap: calc(16px * var(--scale, 1));
 }
 
-.observer-left {
-  flex: 1;
-  min-width: 0;
+/* Header row: party title on left, QR on right */
+.observer-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 24px;
+}
+
+.observer-title {
   display: flex;
   flex-direction: column;
 }
 
 .observer-leaderboard h1 {
-  margin-bottom: var(--spacing-xs);
-  flex-shrink: 0;
+  font-size: calc(7rem * var(--scale, 1));
+  font-weight: 800;
+  margin: 0 0 calc(8px * var(--scale, 1)) 0;
+  color: #ffffff;
 }
 
 .observer-leaderboard .subtitle {
-  color: var(--color-text-muted);
-  font-size: 14px;
-  margin-bottom: var(--spacing-sm);
-  flex-shrink: 0;
+  color: #aaaaaa;
+  font-size: calc(3rem * var(--scale, 1));
 }
 
+/* QR on the right, label to its left, both vertically centered */
+.observer-leaderboard .qr-section {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.observer-leaderboard .qr-label {
+  font-size: calc(1.5rem * var(--scale, 1));
+  color: #aaaaaa;
+}
+
+/* Column header row */
 .observer-leaderboard .rankings-header {
   display: flex;
   align-items: center;
-  padding: 0 var(--spacing-md) var(--spacing-xs);
-  font-size: 12px;
-  color: var(--color-text-muted);
+  padding: 0 calc(32px * var(--scale, 1)) calc(8px * var(--scale, 1));
+  font-size: calc(2.5rem * var(--scale, 1));
+  color: #888888;
   flex-shrink: 0;
 }
 
 .observer-leaderboard .rankings-header .rank-col {
-  width: 40px;
+  width: calc(140px * var(--scale, 1));
 }
 
 .observer-leaderboard .rankings-header .name-col {
@@ -48,69 +74,73 @@
 }
 
 .observer-leaderboard .rankings-header .voted-col {
-  width: 50px;
+  width: calc(200px * var(--scale, 1));
   text-align: center;
 }
 
 .observer-leaderboard .rankings-header .score-col {
-  width: 50px;
+  width: calc(220px * var(--scale, 1));
   text-align: right;
 }
 
+/* Rankings list fills remaining vertical space */
 .observer-leaderboard .rankings {
   list-style: none;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: calc(12px * var(--scale, 1));
+  overflow-y: auto;
 }
 
 .observer-leaderboard .rank-row {
   display: flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--color-surface);
-  border-radius: var(--radius);
+  padding: calc(20px * var(--scale, 1)) calc(32px * var(--scale, 1));
+  background: #1e1e1e;
+  border-radius: calc(16px * var(--scale, 1));
   flex: 1;
-  min-height: 0;
+}
+
+/* Top 3 rank rows get a subtle gold left border */
+.observer-leaderboard .rank-row:nth-child(1) {
+  border-left: calc(8px * var(--scale, 1)) solid #e2b714;
+}
+
+.observer-leaderboard .rank-row:nth-child(2) {
+  border-left: calc(8px * var(--scale, 1)) solid #c0c0c0;
+}
+
+.observer-leaderboard .rank-row:nth-child(3) {
+  border-left: calc(8px * var(--scale, 1)) solid #cd7f32;
 }
 
 .observer-leaderboard .rank {
   font-weight: 700;
-  width: 40px;
-  color: var(--color-text-muted);
+  font-size: calc(4.5rem * var(--scale, 1));
+  width: calc(140px * var(--scale, 1));
+  color: #888888;
 }
 
 .observer-leaderboard .guest-name {
   flex: 1;
+  font-size: calc(5rem * var(--scale, 1));
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .observer-leaderboard .votes-cast {
-  width: 50px;
+  width: calc(200px * var(--scale, 1));
   text-align: center;
-  font-size: 14px;
-  color: var(--color-text-muted);
+  font-size: calc(3rem * var(--scale, 1));
+  color: #aaaaaa;
 }
 
 .observer-leaderboard .score {
-  width: 50px;
+  width: calc(220px * var(--scale, 1));
   text-align: right;
-  font-weight: 700;
-  font-size: 18px;
-}
-
-.observer-leaderboard .qr-section {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-md);
-}
-
-.observer-leaderboard .qr-label {
-  font-size: 14px;
-  color: var(--color-text-muted);
-  margin-top: var(--spacing-sm);
+  font-weight: 800;
+  font-size: calc(6rem * var(--scale, 1));
+  color: #e2b714;
 }

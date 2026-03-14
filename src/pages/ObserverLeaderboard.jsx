@@ -35,34 +35,44 @@ export default function ObserverLeaderboard() {
     }))
     .sort((a, b) => b.correct - a.correct || b.voted - a.voted)
 
+  // At scale=1 each row is ~148px (6rem font + 40px padding + 12px gap).
+  // Base on actual viewport height so the formula works on both the dev laptop and the 2560px monitor.
+  const scale = Math.min(1, (window.innerHeight * 0.60) / (Math.max(ranked.length, 1) * 148))
+
   return (
-    <div className="observer-leaderboard">
-      <div className="observer-main">
-        <div className="observer-left">
+    <div className="observer-leaderboard" style={{ '--scale': scale }}>
+      <div className="observer-header">
+        <div className="observer-title">
           <h1>{party?.name}</h1>
           <p className="subtitle">{totalAnnounced} of {totalCategories} categories announced</p>
-          <div className="rankings-header">
-            <span className="rank-col"></span>
-            <span className="name-col"></span>
-            <span className="voted-col">Voted</span>
-            <span className="score-col">Score</span>
-          </div>
-          <ol className="rankings">
-            {ranked.map((guest, i) => (
-              <li key={guest.id} className="rank-row">
-                <span className="rank">#{i + 1}</span>
-                <span className="guest-name">{guest.displayName} ({guest.id})</span>
-                <span className="votes-cast">{guest.voted}/{totalCategories}</span>
-                <span className="score">{guest.correct}/{totalAnnounced}</span>
-              </li>
-            ))}
-          </ol>
         </div>
         <div className="qr-section">
-          <QRCodeSVG value={`${window.location.origin}/${partyCode}/join`} size={160} />
           <p className="qr-label">Scan to join</p>
+          <QRCodeSVG
+            value={`${window.location.origin}/${partyCode}/join`}
+            size={160}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            style={{ padding: '12px', background: '#ffffff', borderRadius: '10px' }}
+          />
         </div>
       </div>
+      <div className="rankings-header">
+        <span className="rank-col"></span>
+        <span className="name-col"></span>
+        <span className="voted-col">Voted</span>
+        <span className="score-col">Score</span>
+      </div>
+      <ol className="rankings">
+        {ranked.map((guest, i) => (
+          <li key={guest.id} className="rank-row">
+            <span className="rank">#{i + 1}</span>
+            <span className="guest-name">{guest.displayName}</span>
+            <span className="votes-cast">{guest.voted}/{totalCategories}</span>
+            <span className="score">{guest.correct}/{totalAnnounced}</span>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }
