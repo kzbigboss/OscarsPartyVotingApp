@@ -113,6 +113,10 @@ firebase deploy
 description = "Install Playwright browser binaries (Chromium)"
 run = "npx playwright install chromium"
 
+[tasks."e2e:load"]
+description = "Run Playwright load test against a live party"
+run = 'node e2e/load-test.js "$@"'
+
 [tasks."maintenance:on"]
 description = "Enable maintenance mode in Firestore"
 run = "node scripts/maintenance.js on"
