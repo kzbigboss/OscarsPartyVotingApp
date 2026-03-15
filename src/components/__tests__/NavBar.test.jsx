@@ -41,11 +41,11 @@ describe('NavBar', () => {
     expect(leaderboardLink.closest('a')).toHaveAttribute('href', '/XYZ789/leaderboard')
   })
 
-  it('renders You link with correct path', () => {
+  it('renders Votes link with correct path', () => {
     renderNavBar()
-    const youLink = screen.getByText('You')
-    expect(youLink).toBeInTheDocument()
-    expect(youLink.closest('a')).toHaveAttribute('href', '/XYZ789/you')
+    const votesLink = screen.getByText('Votes')
+    expect(votesLink).toBeInTheDocument()
+    expect(votesLink.closest('a')).toHaveAttribute('href', '/XYZ789/votes')
   })
 
   it('has nav-bar class on the nav element', () => {

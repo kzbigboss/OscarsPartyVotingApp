@@ -10,7 +10,7 @@ const Home = lazy(() => import('./pages/Home'))
 const Join = lazy(() => import('./pages/Join'))
 const Ballot = lazy(() => import('./pages/Ballot'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
-const You = lazy(() => import('./pages/You'))
+const Votes = lazy(() => import('./pages/Votes'))
 const ObserverLeaderboard = lazy(() => import('./pages/ObserverLeaderboard'))
 
 function AppContent() {
@@ -34,7 +34,7 @@ function AppContent() {
               <Route path="/:partyCode" element={<Join />} />
               <Route path="/:partyCode/ballot" element={<Ballot />} />
               <Route path="/:partyCode/leaderboard" element={<Leaderboard />} />
-              <Route path="/:partyCode/you" element={<You />} />
+              <Route path="/:partyCode/votes" element={<Votes />} />
               <Route path="/:partyCode/observe" element={<ObserverLeaderboard />} />
             </Routes>
           </Suspense>
