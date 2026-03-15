@@ -127,11 +127,20 @@ describe('Votes page', () => {
 
   it('renders the guest card with guest ID', () => {
     renderVotes()
-    expect(screen.getByText('Guest #1000')).toBeInTheDocument()
+    // Guest ID is in a nested span within the header, so check for the pattern
+    expect(screen.getByText(/Guest #1000/)).toBeInTheDocument()
   })
 
-  it('renders the name input with current display name', () => {
+  it('does not render the name input when collapsed by default', () => {
     renderVotes()
+    const input = screen.queryByRole('textbox')
+    expect(input).not.toBeInTheDocument()
+  })
+
+  it('renders the name input when expanded', () => {
+    renderVotes()
+    const expandButton = screen.getByRole('button', { name: /edit display name/i })
+    fireEvent.click(expandButton)
     const input = screen.getByRole('textbox')
     expect(input).toHaveValue('Alice')
   })
@@ -198,22 +207,73 @@ describe('Votes page', () => {
     expect(correctVote).not.toBeNull()
   })
 
-  it('disables Save button when name has not changed', () => {
+  it('disables Update Name button when name has not changed', () => {
     renderVotes()
-    const saveButton = screen.getByRole('button', { name: /save/i })
-    expect(saveButton).toBeDisabled()
+    const expandButton = screen.getByRole('button', { name: /edit display name/i })
+    fireEvent.click(expandButton)
+    const updateButton = screen.getByRole('button', { name: /update name/i })
+    expect(updateButton).toBeDisabled()
   })
 
-  it('enables Save button when name is changed', () => {
+  it('enables Update Name button when name is changed', () => {
     renderVotes()
+    const expandButton = screen.getByRole('button', { name: /edit display name/i })
+    fireEvent.click(expandButton)
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Alice Updated' } })
-    const saveButton = screen.getByRole('button', { name: /save/i })
-    expect(saveButton).not.toBeDisabled()
+    const updateButton = screen.getByRole('button', { name: /update name/i })
+    expect(updateButton).not.toBeDisabled()
   })
 
   it('uses votes-page as the top-level CSS class', () => {
     const { container } = renderVotes()
     expect(container.querySelector('.votes-page')).toBeInTheDocument()
+  })
+
+  it('renders collapsible header with Edit Display Name text', () => {
+    renderVotes()
+    const header = screen.getByRole('button', { name: /edit display name/i })
+    expect(header).toBeInTheDocument()
+  })
+
+  it('shows guest ID in the collapsed header', () => {
+    renderVotes()
+    expect(screen.getByText(/Guest #1000/)).toBeInTheDocument()
+  })
+
+  it('expands the form when header is clicked', () => {
+    renderVotes()
+    const header = screen.getByRole('button', { name: /edit display name/i })
+    fireEvent.click(header)
+    const input = screen.getByRole('textbox')
+    expect(input).toBeInTheDocument()
+  })
+
+  it('collapses the form when header is clicked again', () => {
+    renderVotes()
+    const header = screen.getByRole('button', { name: /edit display name/i })
+    // First click to expand
+    fireEvent.click(header)
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    // Second click to collapse
+    fireEvent.click(header)
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  })
+
+  it('has aria-expanded attribute reflecting expanded state', () => {
+    renderVotes()
+    const header = screen.getByRole('button', { name: /edit display name/i })
+    expect(header).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(header)
+    expect(header).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('shows chevron with rotation class when expanded', () => {
+    const { container } = renderVotes()
+    const header = screen.getByRole('button', { name: /edit display name/i })
+    const chevron = container.querySelector('.you-card-chevron')
+    expect(chevron).not.toHaveClass('expanded')
+    fireEvent.click(header)
+    expect(chevron).toHaveClass('expanded')
   })
 })
