@@ -1,0 +1,170 @@
+.observer-votes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  padding: calc(36px * var(--scale, 1)) calc(48px * var(--scale, 1)) calc(32px * var(--scale, 1));
+  box-sizing: border-box;
+  background: #121212;
+  color: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12px * var(--scale, 1));
+}
+
+/* Header row: party title on left, QR on right */
+.observer-votes .observer-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 24px;
+}
+
+.observer-votes .observer-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.observer-votes h1 {
+  font-size: calc(5rem * var(--scale, 1));
+  font-weight: 800;
+  margin: 0 0 calc(6px * var(--scale, 1)) 0;
+  color: #ffffff;
+}
+
+.observer-votes .subtitle {
+  color: #aaaaaa;
+  font-size: calc(2rem * var(--scale, 1));
+}
+
+.observer-votes .qr-section {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.observer-votes .qr-label {
+  font-size: calc(1.4rem * var(--scale, 1));
+  color: #aaaaaa;
+}
+
+/* Two-column grid for portrait monitor */
+.observer-votes .categories-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(8px * var(--scale, 1));
+  overflow: hidden;
+}
+
+/* Each category row */
+.observer-votes .category-row {
+  background: #1e1e1e;
+  border-radius: calc(10px * var(--scale, 1));
+  padding: calc(10px * var(--scale, 1)) calc(16px * var(--scale, 1));
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--scale, 1));
+  overflow: hidden;
+}
+
+.observer-votes .category-row.announced {
+  border-left: calc(4px * var(--scale, 1)) solid #e2b714;
+}
+
+.observer-votes .category-name {
+  font-size: calc(1.6rem * var(--scale, 1));
+  font-weight: 700;
+  color: #cccccc;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.observer-votes .nominees-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(3px * var(--scale, 1));
+}
+
+.observer-votes .no-votes {
+  color: #555555;
+  font-size: calc(1.2rem * var(--scale, 1));
+  margin: 0;
+}
+
+/* Each nominee bar */
+.observer-votes .nominee-bar {
+  position: relative;
+  background: #2a2a2a;
+  border-radius: calc(5px * var(--scale, 1));
+  overflow: hidden;
+  min-height: calc(20px * var(--scale, 1));
+}
+
+.observer-votes .nominee-bar.winner {
+  outline: calc(2px * var(--scale, 1)) solid #e2b714;
+}
+
+.observer-votes .nominee-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #3a4a5a;
+  transition: width 0.3s ease;
+}
+
+.observer-votes .nominee-bar.winner .nominee-bar-fill {
+  background: #4a3a10;
+}
+
+.observer-votes .nominee-bar-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(3px * var(--scale, 1)) calc(8px * var(--scale, 1));
+  z-index: 1;
+}
+
+.observer-votes .nominee-name {
+  font-size: calc(1.3rem * var(--scale, 1));
+  font-weight: 600;
+  color: #f0f0f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.observer-votes .nominee-bar.winner .nominee-name {
+  color: #e2b714;
+}
+
+.observer-votes .nominee-count {
+  font-size: calc(1.3rem * var(--scale, 1));
+  font-weight: 800;
+  color: #e2b714;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.observer-votes .nominee-voters {
+  position: relative;
+  z-index: 1;
+  padding: 0 calc(8px * var(--scale, 1)) calc(3px * var(--scale, 1));
+  font-size: calc(1rem * var(--scale, 1));
+  color: #888888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

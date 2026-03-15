@@ -12,6 +12,7 @@ const Ballot = lazy(() => import('./pages/Ballot'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
 const Votes = lazy(() => import('./pages/Votes'))
 const ObserverLeaderboard = lazy(() => import('./pages/ObserverLeaderboard'))
+const ObserverVotes = lazy(() => import('./pages/ObserverVotes'))
 
 function AppContent() {
   const { maintenance, loading } = useMaintenance()
@@ -36,6 +37,7 @@ function AppContent() {
               <Route path="/:partyCode/leaderboard" element={<Leaderboard />} />
               <Route path="/:partyCode/votes" element={<Votes />} />
               <Route path="/:partyCode/observe" element={<ObserverLeaderboard />} />
+              <Route path="/:partyCode/observe/votes" element={<ObserverVotes />} />
             </Routes>
           </Suspense>
         </AuthProvider>
