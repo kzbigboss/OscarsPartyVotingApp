@@ -49,7 +49,7 @@ export default function ObserverLeaderboard() {
         <div className="qr-section">
           <p className="qr-label">Scan to join</p>
           <QRCodeSVG
-            value={`${window.location.origin}/${partyCode}/join`}
+            value={`${window.location.origin}/${partyCode}`}
             size={160}
             bgColor="#ffffff"
             fgColor="#000000"

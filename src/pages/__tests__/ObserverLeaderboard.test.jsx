@@ -56,6 +56,10 @@ vi.mock('../../utils/scoring', () => ({
   })),
 }))
 
+vi.mock('qrcode.react', () => ({
+  QRCodeSVG: (props) => <div data-testid="qr-code" data-value={props.value} />,
+}))
+
 import ObserverLeaderboard from '../ObserverLeaderboard'
 import { useParty } from '../../hooks/useParty'
 import { useGuests } from '../../hooks/useGuests'
@@ -172,5 +176,14 @@ describe('ObserverLeaderboard', () => {
     const { container } = renderObserver()
     expect(container.querySelector('.observer-leaderboard')).toBeInTheDocument()
     expect(container.querySelector('.leaderboard')).not.toBeInTheDocument()
+  })
+
+  it('renders QR code pointing to /:partyCode (not /:partyCode/join)', () => {
+    renderObserver()
+    const qr = screen.getByTestId('qr-code')
+    expect(qr).toBeInTheDocument()
+    const value = qr.getAttribute('data-value')
+    expect(value).toBe(`${window.location.origin}/ABC123`)
+    expect(value).not.toContain('/join')
   })
 })
