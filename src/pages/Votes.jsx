@@ -20,6 +20,7 @@ export default function Votes() {
   const [name, setName] = useState(displayName)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [nameExpanded, setNameExpanded] = useState(false)
 
   async function handleSaveName(e) {
     e.preventDefault()
@@ -65,28 +66,45 @@ export default function Votes() {
       <h1>Votes</h1>
 
       <div className="you-card">
-        <div className="guest-id-label">Guest #{guestId}</div>
-        <form className="name-form" onSubmit={handleSaveName}>
-          <label>
-            Your Name
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              maxLength={30}
-            />
-          </label>
-          <button
-            type="submit"
-            className="btn-small"
-            disabled={saving || !name.trim() || name.trim() === displayName}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-        </form>
-        {error && (
-          <div className="name-error" role="alert">{error}</div>
+        <button
+          className="you-card-header"
+          onClick={() => setNameExpanded(!nameExpanded)}
+          aria-expanded={nameExpanded}
+          type="button"
+        >
+          <span className="you-card-header-text">
+            Edit Display Name
+            <span className="you-card-guest-id"> • Guest #{guestId}</span>
+          </span>
+          <span className={`you-card-chevron ${nameExpanded ? 'expanded' : ''}`}>
+            ▼
+          </span>
+        </button>
+        {nameExpanded && (
+          <>
+            <form className="name-form" onSubmit={handleSaveName}>
+              <label>
+                Your Name
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  maxLength={30}
+                />
+              </label>
+              <button
+                type="submit"
+                className="btn-small"
+                disabled={saving || !name.trim() || name.trim() === displayName}
+              >
+                {saving ? 'Updating...' : 'Update Name'}
+              </button>
+            </form>
+            {error && (
+              <div className="name-error" role="alert">{error}</div>
+            )}
+          </>
         )}
       </div>
 
