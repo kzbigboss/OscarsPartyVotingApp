@@ -125,10 +125,10 @@ describe('Votes page', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Votes')
   })
 
-  it('renders the guest card with guest ID', () => {
+  it('renders the guest card with current display name', () => {
     renderVotes()
-    // Guest ID is in a nested span within the header, so check for the pattern
-    expect(screen.getByText(/Guest #1000/)).toBeInTheDocument()
+    // Display name is in a nested span within the header, so check for the pattern
+    expect(screen.getByText(/Current display name: Alice/)).toBeInTheDocument()
   })
 
   it('does not render the name input when collapsed by default', () => {
@@ -236,9 +236,9 @@ describe('Votes page', () => {
     expect(header).toBeInTheDocument()
   })
 
-  it('shows guest ID in the collapsed header', () => {
+  it('shows display name in the collapsed header', () => {
     renderVotes()
-    expect(screen.getByText(/Guest #1000/)).toBeInTheDocument()
+    expect(screen.getByText(/Current display name: Alice/)).toBeInTheDocument()
   })
 
   it('expands the form when header is clicked', () => {

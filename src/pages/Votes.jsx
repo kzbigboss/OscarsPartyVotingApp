@@ -74,7 +74,7 @@ export default function Votes() {
         >
           <span className="you-card-header-text">
             Edit Display Name
-            <span className="you-card-guest-id"> • Guest #{guestId}</span>
+            <span className="you-card-guest-id"> • Current display name: {displayName}</span>
           </span>
           <span className={`you-card-chevron ${nameExpanded ? 'expanded' : ''}`}>
             ▼
